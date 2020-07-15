@@ -163,7 +163,7 @@ public class SingleOrgNetwork {
 
     public static class MyChannel {
 
-        static final String configTx = BaseSampleDir + "/channel-mychannel/mychannel/mychannel.tx";
+        static final String configTx = BaseSampleDir + "/channel-mychannel/mychannel.tx";
         public static final String name = "mychannel";
 
         public static ChannelConfiguration getChannelConfiguration() throws IOException, InvalidArgumentException {
