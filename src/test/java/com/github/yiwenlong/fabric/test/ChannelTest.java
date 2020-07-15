@@ -38,6 +38,13 @@ public class ChannelTest {
     }
 
     @Test
+    public void testJoinChannel() throws Exception {
+        Channel channel = client.newChannel(MyChannel.name);
+        channel.addOrderer(Orderers.getOrderer0(client));
+        channel.joinPeer(Org1.getPeer0Admin(client));
+    }
+
+    @Test
     public void testViewChannel() throws Exception {
         Channel channel = client.newChannel(MyChannel.name);
         channel.addPeer(Org1.getPeer0Admin(client));
