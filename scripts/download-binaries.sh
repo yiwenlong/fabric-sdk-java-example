@@ -32,10 +32,10 @@ function download() {
 
 ARCH=$(echo "$(uname -s|tr '[:upper:]' '[:lower:]'|sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')")
 
-rm -fr "$(pwd)/build/*"
-mkdir -p "$(pwd)/build/chaincode"
+rm -fr "$(pwd)/../binaries/*"
+mkdir -p "$(pwd)/../binaries/chaincode"
 
-cd ./build/ || exit
+cd ../binaries/ || exit
 
 MARCH=$(uname -m)
 FABRIC_VERSION=2.0.1
