@@ -25,4 +25,4 @@ target/
 
 fabric-sdk-java-example.iml
 
-network/build
+binaries/

@@ -52,9 +52,11 @@ if [ -z "$SUPERVISOR_CONFD_DIR" ]; then
   fi
 fi
 
-if [ -d "$node_home" ]; then
+if [ ! -d "$node_home" ]; then
+  echo "Directory not found: $node_home"
   exit 1
 fi
+
 boot_script_file=$node_home/boot.sh
 sed -e "s/_supervisor_conf_file_name_/${supervisor_conf_file_name}/
         s:_supervisor_conf_dir_:${SUPERVISOR_CONFD_DIR}:
