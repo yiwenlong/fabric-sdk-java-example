@@ -39,3 +39,7 @@ case $input in
   done
   echo "Clean Done!"
 esac
+
+if [ -f "chaincode-tps/Fabric-SDK-example-Chaincode-tps.log" ]; then
+  rm "chaincode-tps/Fabric-SDK-example-Chaincode-tps.log"
+fi
