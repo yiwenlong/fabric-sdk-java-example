@@ -36,8 +36,8 @@ network/Org1/*/data
 
 network/Orderer/*/*.sh
 network/Orderer/*/orderer
-network/Orderer/etcdraft
-network/Orderer/file-ledger
+network/Orderer/*/etcdraft
+network/Orderer/*/file-ledger
 
 network/chaincode-tps/*.sh
 network/chaincode-tps/tps
