@@ -26,3 +26,11 @@ target/
 fabric-sdk-java-example.iml
 
 binaries/
+
+network/Org1/*/*.sh
+network/Org1/*/*.log
+network/Org1/*/peer
+network/Org1/*/data
+
+network/Orderer/*/*.sh
+network/chaincode-tps/*.sh
