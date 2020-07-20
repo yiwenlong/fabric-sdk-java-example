@@ -21,8 +21,8 @@ case $input in
     if [ -d "Org1/$node/data" ]; then
       rm -fr "Org1/$node/data"
     fi
-    if [ -f "Org1/$node/FABRIC-NODOCKER-Org1-$node.log" ]; then
-      rm -f "Org1/$node/FABRIC-NODOCKER-Org1-$node.log"
+    if [ -f "Org1/$node/Fabric-SDK-example-Org1-$node.log" ]; then
+      rm -f "Org1/$node/Fabric-SDK-example-Org1-$node.log"
     fi
   done
 
@@ -33,8 +33,8 @@ case $input in
     if [ -d "Orderer/$node/file-ledger" ]; then
       rm -fr "Orderer/$node/file-ledger"
     fi
-    if [ -f "Orderer/$node/FABRIC-NODOCKER-Orderer-$node.log" ]; then
-      rm -f "Orderer/$node/FABRIC-NODOCKER-Orderer-$node.log"
+    if [ -f "Orderer/$node/Fabric-SDK-example-Orderer-$node.log" ]; then
+      rm -f "Orderer/$node/Fabric-SDK-example-Orderer-$node.log"
     fi
   done
   echo "Clean Done!"
