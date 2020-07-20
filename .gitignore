@@ -35,6 +35,7 @@ network/Org1/*/peer
 network/Org1/*/data
 
 network/Orderer/*/*.sh
+network/Orderer/orderer
 network/Orderer/etcdraft
 network/Orderer/file-ledger
 
