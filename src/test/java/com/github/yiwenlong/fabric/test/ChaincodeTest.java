@@ -42,7 +42,6 @@ public class ChaincodeTest {
         System.out.println("Height: " + blockchainInfo.getHeight());
         System.out.println("Current block hash: " + Base64.getEncoder().encodeToString(blockchainInfo.getCurrentBlockHash()));
         System.out.println("Previous block hash: " + Base64.getEncoder().encodeToString(blockchainInfo.getPreviousBlockHash()));
-        System.out.println("-----------------------------------------");
     }
 
     @Test

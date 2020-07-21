@@ -32,16 +32,23 @@ public class ChannelTest {
     @Test
     public void testCreateChannel() throws Exception {
         Channel channel = MyChannel.create(client);
-        channel.joinPeer(Org1.getPeer0Admin(client));
-        channel.joinPeer(Org1.getPeer1Admin(client));
+//        channel.joinPeer(Org1.getPeer0Admin(client));
+//        channel.joinPeer(Org1.getPeer1Admin(client));
         System.out.println(channel.getName());
     }
 
     @Test
-    public void testJoinChannel() throws Exception {
+    public void testJoinChannelPeer0() throws Exception {
         Channel channel = client.newChannel(MyChannel.name);
         channel.addOrderer(Orderers.getOrderer0(client));
         channel.joinPeer(Org1.getPeer0Admin(client));
+    }
+
+    @Test
+    public void testJoinChannelPeer1() throws Exception {
+        Channel channel = client.newChannel(MyChannel.name);
+        channel.addOrderer(Orderers.getOrderer0(client));
+        channel.joinPeer(Org1.getPeer1Admin(client));
     }
 
     @Test
