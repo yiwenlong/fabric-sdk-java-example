@@ -14,32 +14,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
+
 read -r -p "Are You Sure Clean Fabric Network Running Data? [Y/n] " input
 case $input in
   [yY][eE][sS]|[yY])
   for node in "peer0" "peer1"; do
-    if [ -d "Org1/$node/data" ]; then
-      rm -fr "Org1/$node/data"
+    if [ -d "$DIR/Org1/$node/data" ]; then
+      rm -fr "$DIR/Org1/$node/data"
     fi
-    if [ -f "Org1/$node/Fabric-SDK-example-Org1-$node.log" ]; then
-      rm -f "Org1/$node/Fabric-SDK-example-Org1-$node.log"
+    if [ -f "$DIR/Org1/$node/Fabric-SDK-example-Org1-$node.log" ]; then
+      rm -f "$DIR/Org1/$node/Fabric-SDK-example-Org1-$node.log"
     fi
   done
 
   for node in "orderer0" "orderer1" "orderer2"; do
-    if [ -d "Orderer/$node/etcdraft" ]; then
-      rm -fr "Orderer/$node/etcdraft"
+    if [ -d "$DIR/Orderer/$node/etcdraft" ]; then
+      rm -fr "$DIR/Orderer/$node/etcdraft"
     fi
-    if [ -d "Orderer/$node/file-ledger" ]; then
-      rm -fr "Orderer/$node/file-ledger"
+    if [ -d "$DIR/Orderer/$node/file-ledger" ]; then
+      rm -fr "$DIR/Orderer/$node/file-ledger"
     fi
-    if [ -f "Orderer/$node/Fabric-SDK-example-Orderer-$node.log" ]; then
-      rm -f "Orderer/$node/Fabric-SDK-example-Orderer-$node.log"
+    if [ -f "$DIR/Orderer/$node/Fabric-SDK-example-Orderer-$node.log" ]; then
+      rm -f "$DIR/Orderer/$node/Fabric-SDK-example-Orderer-$node.log"
     fi
   done
   echo "Clean Done!"
 esac
 
-if [ -f "chaincode-tps/Fabric-SDK-example-Chaincode-tps.log" ]; then
-  rm "chaincode-tps/Fabric-SDK-example-Chaincode-tps.log"
+if [ -f "$DIR/chaincode-tps/Fabric-SDK-example-Chaincode-tps.log" ]; then
+  rm "$DIR/chaincode-tps/Fabric-SDK-example-Chaincode-tps.log"
 fi
