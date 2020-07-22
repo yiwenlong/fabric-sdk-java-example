@@ -15,16 +15,12 @@
 //
 package com.github.yiwenlong.fabric.utils;
 
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.security.PrivateKey;
 
 public class FileUtils {
@@ -54,11 +50,11 @@ public class FileUtils {
         try(InputStream input = new FileInputStream(file)) {
             int len;
             byte[] buffer = new byte[1024];
-            ByteOutputStream baos = new ByteOutputStream();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
             while ((len = input.read(buffer)) != -1) {
                 baos.write(buffer, 0, len);
             }
-            return baos.getBytes();
+            return baos.toByteArray();
         }
     }
 }
