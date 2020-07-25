@@ -19,14 +19,12 @@ DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 for node in "peer0" "peer1"; do
   if ! "$DIR/Org1/$node/stop.sh"; then
     echo "Node [$node] stop failed!"
-    exit 1
   fi
 done
 
 for node in "orderer0" "orderer1" "orderer2"; do
   if ! "$DIR/Orderer/$node/stop.sh"; then
     echo "Node [$node] stop failed!"
-    exit 1
   fi
 done
 
