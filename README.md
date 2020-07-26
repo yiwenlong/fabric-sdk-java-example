@@ -31,74 +31,18 @@ You should install supervisor and maven on your own operation system.
 
 ### Channel test cases
 
-#### Create channel
-
 ```shell
-mvn test -Dtest=ChannelTest#testCreateChannel
-```
-
-#### Join channel
-
-```shell
-mvn test -Dtest=ChannelTest#testJoinChannelPeer0
-mvn test -Dtest=ChannelTest#testJoinChannelPeer1
-```
-
-#### View channel information
-
-```shell
-mvn test -Dtest=ChannelTest#testViewChannel
+mvn test -Dtest=ChannelTestCase
 ```
 
 ### Chaincode Lifecycle test cases
 
-#### Install Chaincode
-
 ```shell
-mvn test -Dtest=ChaincodeLifecycleTest#testInstallChaincode
-```
-
-#### View chaincode install information
-
-```shell
-mvn test -Dtest=ChaincodeLifecycleTest#testQueryInstalledChaincode
-```
-
-#### Approve chaincode defination
-
-```shell
-mvn test -Dtest=ChaincodeLifecycleTest#testApproveChaincode
-```
-
-#### View approve information
-
-```shell
-mvn test -Dtest=ChaincodeLifecycleTest#testQueyApproveChaincode
-```
-
-#### Commit chaincode defination
-
-```shell
-mvn test -Dtest=ChaincodeLifecycleTest#testCommitChaincode
-```
-
-#### View chaincode defination
-
-```shell
-mvn test -Dtest=ChaincodeLifecycleTest#testChaincodeDefinition
+mvn test -Dtest=ChaincodeLifecycleTestCase
 ```
 
 ### Chaincode test cases
 
-#### Invoke chaincode
-
 ```shell
-mvn test -Dtest=ChaincodeTest#testInvoke
+mvn test -Dtest=ChaincodeTestCase
 ```
-
-#### Query chaincode
-
-```shell
-mvn test -Dtest=ChaincodeTest#testQueryChaincode
-```
-
