@@ -88,7 +88,6 @@ public class ChaincodeLifecycleTest {
                 e.printStackTrace();
             }
         });
-        client.newLifecycleQueryInstalledChaincodeRequest();
     }
 
     @Test
