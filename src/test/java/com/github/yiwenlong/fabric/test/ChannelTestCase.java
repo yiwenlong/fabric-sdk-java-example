@@ -47,6 +47,7 @@ public class ChannelTestCase extends TestCase {
             client.setUserContext(SingleOrgNetwork.Org1.Admin.get());
         } catch (Exception e) {
             e.printStackTrace();
+            Assert.fail();
         }
     }
 

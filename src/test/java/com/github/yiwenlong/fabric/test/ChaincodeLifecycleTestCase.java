@@ -62,6 +62,7 @@ public class ChaincodeLifecycleTestCase extends TestCase {
             System.out.println("Previous block hash: " + Base64.getEncoder().encodeToString(blockchainInfo.getPreviousBlockHash()));
         } catch (Exception e) {
             e.printStackTrace();
+            Assert.fail();
         }
     }
 
@@ -103,6 +104,7 @@ public class ChaincodeLifecycleTestCase extends TestCase {
             });
         } catch (ProposalException e) {
             e.printStackTrace();
+            Assert.fail();
         }
     }
 
@@ -129,6 +131,7 @@ public class ChaincodeLifecycleTestCase extends TestCase {
             }
         } catch (ProposalException e) {
             e.printStackTrace();
+            Assert.fail();
         }
     }
 
@@ -149,6 +152,7 @@ public class ChaincodeLifecycleTestCase extends TestCase {
                     approvalsMap.forEach((org, isProval) -> System.out.printf("Org: %s, %s\n", org, isProval));
                 } catch (ProposalException e) {
                     e.printStackTrace();
+                    Assert.fail();
                 }
             });
         } catch (ProposalException e) {
@@ -174,6 +178,7 @@ public class ChaincodeLifecycleTestCase extends TestCase {
             Assert.assertTrue(txEvent.isValid());
         } catch (Exception e) {
             e.printStackTrace();
+            Assert.fail();
         }
     }
 

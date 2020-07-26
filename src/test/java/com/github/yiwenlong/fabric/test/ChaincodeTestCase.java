@@ -61,6 +61,7 @@ public class ChaincodeTestCase extends TestCase {
             System.out.println("Previous block hash: " + Base64.getEncoder().encodeToString(blockchainInfo.getPreviousBlockHash()));
         } catch (Exception e) {
             e.printStackTrace();
+            Assert.fail();
         }
     }
 
@@ -94,10 +95,12 @@ public class ChaincodeTestCase extends TestCase {
                     System.out.println(new String(response.getChaincodeActionResponsePayload()));
                 } catch (InvalidArgumentException e) {
                     e.printStackTrace();
+                    Assert.fail();
                 }
             });
         } catch (ProposalException | InvalidArgumentException e) {
             e.printStackTrace();
+            Assert.fail();
         }
     }
 
