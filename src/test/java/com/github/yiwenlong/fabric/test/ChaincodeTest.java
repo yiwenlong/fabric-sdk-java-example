@@ -21,15 +21,18 @@ import org.junit.Test;
 
 public class ChaincodeTest {
 
-    @Test
-    public void testInvoke() {
-        TestResult r = new ChannelTestCase("invoke").run();
+    public void runChaincodeTestCase(String test) {
+        TestResult r = new ChannelTestCase(test).run();
         Assert.assertTrue(r.wasSuccessful());
     }
 
     @Test
+    public void testInvoke() {
+        runChaincodeTestCase("invoke");
+    }
+
+    @Test
     public void testQueryChaincode() {
-        TestResult r = new ChannelTestCase("query").run();
-        Assert.assertTrue(r.wasSuccessful());
+        runChaincodeTestCase("query");
     }
 }

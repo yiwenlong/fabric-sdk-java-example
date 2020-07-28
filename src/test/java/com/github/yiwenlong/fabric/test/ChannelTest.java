@@ -21,27 +21,28 @@ import org.junit.Test;
 
 public class ChannelTest {
 
+    public void runChannelTestCase(String test) {
+        TestResult r = new ChannelTestCase(test).run();
+        Assert.assertTrue(r.wasSuccessful());
+    }
+
     @Test
     public void testCreateChannel() {
-        TestResult r = new ChannelTestCase("createChannel").run();
-        Assert.assertTrue(r.wasSuccessful());
+        runChannelTestCase("createChannel");
     }
 
     @Test
     public void testJoinChannelPeer0() {
-        TestResult r = new ChannelTestCase("joinChannelPeer0").run();
-        Assert.assertTrue(r.wasSuccessful());
+        runChannelTestCase("joinChannelPeer0");
     }
 
     @Test
     public void testJoinChannelPeer1() {
-        TestResult r = new ChannelTestCase("joinChannelPeer1").run();
-        Assert.assertTrue(r.wasSuccessful());
+        runChannelTestCase("joinChannelPeer1");
     }
 
     @Test
     public void testViewChannel() {
-        TestResult r = new ChannelTestCase("viewChannelInformation").run();
-        Assert.assertTrue(r.wasSuccessful());
+        runChannelTestCase("viewChannelInformation");
     }
 }

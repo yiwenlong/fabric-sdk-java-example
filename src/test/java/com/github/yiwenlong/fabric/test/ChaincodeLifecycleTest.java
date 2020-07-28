@@ -21,39 +21,38 @@ import org.junit.Test;
 
 public class ChaincodeLifecycleTest {
 
+    public void runChaincodeLifecycleTestCase(String test) {
+        TestResult r = new ChaincodeLifecycleTestCase(test).run();
+        Assert.assertTrue(r.wasSuccessful());
+    }
+
     @Test
     public void testInstallChaincode() {
-        TestResult r = new ChaincodeLifecycleTestCase("installChaincode").run();
-        Assert.assertTrue(r.wasSuccessful());
+        runChaincodeLifecycleTestCase("installChaincode");
     }
 
     @Test
     public void testQueryInstalledChaincode() {
-        TestResult r = new ChaincodeLifecycleTestCase("queryInstalledChaincode").run();
-        Assert.assertTrue(r.wasSuccessful());
+        runChaincodeLifecycleTestCase("queryInstalledChaincode");
     }
 
     @Test
     public void testApproveChaincode() {
-        TestResult r = new ChaincodeLifecycleTestCase("approveChaincode").run();
-        Assert.assertTrue(r.wasSuccessful());
+        runChaincodeLifecycleTestCase("approveChaincode");
     }
 
     @Test
     public void testQueyApproveChaincode() {
-        TestResult r = new ChaincodeLifecycleTestCase("queryApproveChaincode").run();
-        Assert.assertTrue(r.wasSuccessful());
+        runChaincodeLifecycleTestCase("queryApproveChaincode");
     }
 
     @Test
     public void testCommitChaincode() {
-        TestResult r = new ChaincodeLifecycleTestCase("commitChaincode").run();
-        Assert.assertTrue(r.wasSuccessful());
+        runChaincodeLifecycleTestCase("commitChaincode");
     }
 
     @Test
     public void testChaincodeDefinition() {
-        TestResult r = new ChaincodeLifecycleTestCase("queryCommittedChaincode").run();
-        Assert.assertTrue(r.wasSuccessful());
+        runChaincodeLifecycleTestCase("queryCommittedChaincode");
     }
 }
