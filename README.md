@@ -53,5 +53,5 @@ mvn test -Dtest=ChaincodeLifecycleTestCase
 # maven script:
 mvn test -Dtest=ChaincodeTestCase
 # gradle script:
-mvn test -Dtest=ChaincodeTestCase
+./gradlew test --tests ChaincodeTestCase
 ```
