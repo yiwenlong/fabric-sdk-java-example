@@ -52,7 +52,7 @@ public class ChaincodeLifecycleTestCase extends TestCase {
             client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
             client.setUserContext(SingleOrgNetwork.Org1.Admin.get());
             mychannel = client.newChannel(SingleOrgNetwork.MyChannel.name);
-            peer0 = SingleOrgNetwork.Org1.getPeer0Admin(client);
+            peer0 = SingleOrgNetwork.Org1.getPeer0(client);
             mychannel.addPeer(peer0);
             mychannel.addOrderer(SingleOrgNetwork.Orderers.getOrderer0(client));
             BlockchainInfo blockchainInfo = mychannel.initialize().queryBlockchainInfo();
@@ -71,7 +71,7 @@ public class ChaincodeLifecycleTestCase extends TestCase {
         request.setLifecycleChaincodePackage(LifecycleChaincodePackage.fromFile(new File(SingleOrgNetwork.TPS.chaincodePackage)));
         Collection<LifecycleInstallChaincodeProposalResponse> responses;
         try {
-            responses = client.sendLifecycleInstallChaincodeRequest(request, SingleOrgNetwork.Org1.getPeersAdmin(client));
+            responses = client.sendLifecycleInstallChaincodeRequest(request, SingleOrgNetwork.Org1.getPeers(client));
             for (LifecycleInstallChaincodeProposalResponse response: responses) {
                 System.out.println("status: " + response.getStatus().name());
                 System.out.println("txid: " + response.getTransactionID());
@@ -88,7 +88,7 @@ public class ChaincodeLifecycleTestCase extends TestCase {
         LifecycleQueryInstalledChaincodesRequest queryRequest = client.newLifecycleQueryInstalledChaincodesRequest();
         Collection<LifecycleQueryInstalledChaincodesProposalResponse> responses;
         try {
-            responses = client.sendLifecycleQueryInstalledChaincodes(queryRequest, SingleOrgNetwork.Org1.getPeersAdmin(client));
+            responses = client.sendLifecycleQueryInstalledChaincodes(queryRequest, SingleOrgNetwork.Org1.getPeers(client));
             responses.forEach( response -> {
                 try {
                     Collection<LifecycleQueryInstalledChaincodesProposalResponse.LifecycleQueryInstalledChaincodesResult> ress =

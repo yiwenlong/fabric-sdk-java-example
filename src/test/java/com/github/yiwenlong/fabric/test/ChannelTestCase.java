@@ -65,7 +65,7 @@ public class ChannelTestCase extends TestCase {
         Channel channel = client.newChannel(SingleOrgNetwork.MyChannel.name);
         channel.addOrderer(SingleOrgNetwork.Orderers.getOrderer0(client));
         try {
-            channel.joinPeer(SingleOrgNetwork.Org1.getPeer0Admin(client));
+            channel.joinPeer(SingleOrgNetwork.Org1.getPeer0(client));
         } catch (ProposalException ex) {
             Assert.fail();
         }
@@ -75,7 +75,7 @@ public class ChannelTestCase extends TestCase {
         Channel channel = client.newChannel(SingleOrgNetwork.MyChannel.name);
         channel.addOrderer(SingleOrgNetwork.Orderers.getOrderer0(client));
         try {
-            channel.joinPeer(SingleOrgNetwork.Org1.getPeer1Admin(client));
+            channel.joinPeer(SingleOrgNetwork.Org1.getPeer1(client));
         } catch (ProposalException ex) {
             Assert.fail();
         }
@@ -83,7 +83,7 @@ public class ChannelTestCase extends TestCase {
 
     public void viewChannelInformation() throws InvalidArgumentException {
         Channel channel = client.newChannel(SingleOrgNetwork.MyChannel.name);
-        channel.addPeer(SingleOrgNetwork.Org1.getPeer0Admin(client));
+        channel.addPeer(SingleOrgNetwork.Org1.getPeer0(client));
         channel.addOrderer(SingleOrgNetwork.Orderers.getOrderer0(client));
         try {
             BlockchainInfo blockchainInfo = channel.initialize().queryBlockchainInfo();

@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import static com.github.yiwenlong.fabric.utils.PropertiesHelper.createTlsAccessProperties;
 
@@ -43,7 +42,7 @@ public class SingleOrgNetwork {
             private static final String grpcUrl = "grpcs://peer0.org1.example.fnodocker.icu:7051";
             private static final String name = "peer0";
 
-            public static Peer get(HFClient fabClient, String tlsClientCert, String tlsClientKey) throws InvalidArgumentException {
+            public static Peer get(HFClient fabClient) throws InvalidArgumentException {
                 Properties p = createTlsAccessProperties(tlsCaCert);
                 return fabClient.newPeer(name, grpcUrl, p);
             }
@@ -53,7 +52,7 @@ public class SingleOrgNetwork {
             private static final String grpcUrl = "grpcs://peer1.org1.example.fnodocker.icu:8051";
             private static final String name = "peer1";
 
-            public static Peer get(HFClient fabClient, String tlsClientCert, String tlsClientKey) throws InvalidArgumentException {
+            public static Peer get(HFClient fabClient) throws InvalidArgumentException {
                 Properties p = createTlsAccessProperties(tlsCaCert);
                 return fabClient.newPeer(name, grpcUrl, p);
             }
@@ -64,9 +63,6 @@ public class SingleOrgNetwork {
             static final String adminCryptoDir = CryptoDir + "/users/Admin@org1.example.fnodocker.icu";
             public static final String keyFile = adminCryptoDir + "/msp/keystore/priv_sk";
             static final String certFile = adminCryptoDir + "/msp/signcerts/Admin@org1.example.fnodocker.icu-cert.pem";
-
-            static final String tlsClientCert = adminCryptoDir + "/tls/client.crt";
-            static final String tlsClientKey = adminCryptoDir + "/tls/client.key";
 
             public static User get() {
                 return getUser(name, Org1MspId, certFile, keyFile);
@@ -79,34 +75,23 @@ public class SingleOrgNetwork {
             static final String keyFile = user1CryptoDir + "/msp/keystore/priv_sk";
             static final String certFile = user1CryptoDir + "/msp/signcerts/User1@org1.example.fnodocker.icu-cert.pem";
 
-            static final String tlsClientCert = user1CryptoDir + "/tls/client.crt";
-            static final String tlsClientKey = user1CryptoDir + "/tls/client.key";
-
             public static User get() {
                 return getUser(name, Org1MspId, certFile, keyFile);
             }
         }
 
-        public static Peer getPeer0Admin(HFClient client) throws InvalidArgumentException {
-            return Peer0.get(client, Admin.tlsClientCert, Admin.tlsClientKey);
+        public static Peer getPeer0(HFClient client) throws InvalidArgumentException {
+            return Peer0.get(client);
         }
 
-        public static Peer getPeer1Admin(HFClient client) throws InvalidArgumentException {
-            return Peer1.get(client, Admin.tlsClientCert, Admin.tlsClientKey);
+        public static Peer getPeer1(HFClient client) throws InvalidArgumentException {
+            return Peer1.get(client);
         }
 
-        public static Peer getPeer0User1(HFClient client) throws InvalidArgumentException {
-            return Peer0.get(client, User1.tlsClientCert, User1.tlsClientKey);
-        }
-
-        public static Peer getPeer1User1(HFClient client) throws InvalidArgumentException {
-            return Peer1.get(client, User1.tlsClientCert, User1.tlsClientKey);
-        }
-
-        public static Collection<Peer> getPeersAdmin(HFClient client) throws InvalidArgumentException {
+        public static Collection<Peer> getPeers(HFClient client) throws InvalidArgumentException {
             Collection<Peer> peers = new ArrayList<>();
-            peers.add(getPeer0Admin(client));
-            peers.add(getPeer1Admin(client));
+            peers.add(getPeer0(client));
+            peers.add(getPeer1(client));
             return peers;
         }
     }
@@ -122,7 +107,7 @@ public class SingleOrgNetwork {
             static final String name = "orderer0";
             static final String grpcUrl = "grpcs://orderer0.example.fnodocker.icu:7050";
 
-            public static Orderer get(HFClient fabClient, String tlsClientCert, String tlsClientKey) throws InvalidArgumentException {
+            public static Orderer get(HFClient fabClient) throws InvalidArgumentException {
                 Properties p = createTlsAccessProperties(tlsCaCert);
                 return fabClient.newOrderer(name, grpcUrl, p);
             }
@@ -133,7 +118,7 @@ public class SingleOrgNetwork {
             static final String name = "orderer1";
             static final String grpcUrl = "grpcs://orderer1.example.fnodocker.icu:8050";
 
-            public static Orderer get(HFClient fabClient, String tlsClientCert, String tlsClientKey) throws InvalidArgumentException {
+            public static Orderer get(HFClient fabClient) throws InvalidArgumentException {
                 Properties p = createTlsAccessProperties(tlsCaCert);
                 return fabClient.newOrderer(name, grpcUrl, p);
             }
@@ -144,7 +129,7 @@ public class SingleOrgNetwork {
             static final String name = "orderer2";
             static final String grpcUrl = "grpcs://orderer2.example.fnodocker.icu:9050";
 
-            public static Orderer get(HFClient fabClient, String tlsClientCert, String tlsClientKey) throws InvalidArgumentException {
+            public static Orderer get(HFClient fabClient) throws InvalidArgumentException {
                 Properties p = createTlsAccessProperties(tlsCaCert);
                 return fabClient.newOrderer(name, grpcUrl, p);
             }
@@ -153,9 +138,6 @@ public class SingleOrgNetwork {
         public static class Admin {
             static final String name = "admin";
             static final String adminCryptoDir = CryptoDir + "/users/Admin@example.fnodocker.icu";
-
-            static final String tlsClientCert = adminCryptoDir + "/tls/client.crt";
-            static final String tlsClientKey = adminCryptoDir + "/tls/client.key";
 
             static final String certFile = adminCryptoDir + "/msp/signcerts/Admin@example.fnodocker.icu-cert.pem";
             static final String keyFile = adminCryptoDir + "/msp/keystore/priv_sk";
@@ -166,15 +148,15 @@ public class SingleOrgNetwork {
         }
 
         public static Orderer getOrderer0(HFClient client) throws InvalidArgumentException {
-            return Orderer0.get(client, Admin.tlsClientCert, Admin.tlsClientKey);
+            return Orderer0.get(client);
         }
 
         public static Orderer getOrderer1(HFClient client) throws InvalidArgumentException {
-            return Orderer1.get(client, Admin.tlsClientCert, Admin.tlsClientKey);
+            return Orderer1.get(client);
         }
 
         public static Orderer getOrderer2(HFClient client) throws InvalidArgumentException {
-            return Orderer2.get(client, Admin.tlsClientCert, Admin.tlsClientKey);
+            return Orderer2.get(client);
         }
     }
 

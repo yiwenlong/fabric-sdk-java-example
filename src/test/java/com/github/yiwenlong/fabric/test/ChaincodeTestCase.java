@@ -51,7 +51,7 @@ public class ChaincodeTestCase extends TestCase {
             client.setUserContext(SingleOrgNetwork.Org1.Admin.get());
 
             mychannel = client.newChannel(SingleOrgNetwork.MyChannel.name);
-            peer0 = SingleOrgNetwork.Org1.getPeer0Admin(client);
+            peer0 = SingleOrgNetwork.Org1.getPeer0(client);
             mychannel.addPeer(peer0);
             mychannel.addOrderer(SingleOrgNetwork.Orderers.getOrderer0(client));
             BlockchainInfo blockchainInfo = mychannel.initialize().queryBlockchainInfo();
