@@ -5,7 +5,8 @@ import org.hyperledger.fabric.sdk.Peer;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
+
+import static com.github.yiwenlong.fabric.utils.PropertiesHelper.createTlsAccessProperties;
 
 public class PeerBuilder {
 
@@ -32,19 +33,8 @@ public class PeerBuilder {
     }
 
     public Peer build() throws InvalidArgumentException {
-        Properties prop = createProperties(tlsCaFile);
+        Properties prop = createTlsAccessProperties(tlsCaFile);
         return client.newPeer(name, grpcUrl, prop);
     }
 
-    public static Properties createProperties(String serverTlsCert) {
-        Properties properties = new Properties();
-        properties.setProperty("sslProvider", "openSSL");
-        properties.setProperty("negotiationType", "TLS");
-        properties.put("pemFile", serverTlsCert);
-
-        properties.put("grpc.NettyChannelBuilderOption.keepAliveTime", new Object[] {5L, TimeUnit.MINUTES});
-        properties.put("grpc.NettyChannelBuilderOption.keepAliveTimeout", new Object[] {8L, TimeUnit.SECONDS});
-        properties.put("grpc.NettyChannelBuilderOption.keepAliveWithoutCalls", new Object[] {true});
-        return properties;
-    }
 }

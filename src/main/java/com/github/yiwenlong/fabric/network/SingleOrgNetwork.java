@@ -27,6 +27,8 @@ import java.util.Collection;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import static com.github.yiwenlong.fabric.utils.PropertiesHelper.createTlsAccessProperties;
+
 public class SingleOrgNetwork {
 
     private static final String BaseSampleDir = "network";
@@ -42,7 +44,7 @@ public class SingleOrgNetwork {
             private static final String name = "peer0";
 
             public static Peer get(HFClient fabClient, String tlsClientCert, String tlsClientKey) throws InvalidArgumentException {
-                Properties p = createProperties(tlsCaCert, tlsClientKey, tlsClientCert);
+                Properties p = createTlsAccessProperties(tlsCaCert);
                 return fabClient.newPeer(name, grpcUrl, p);
             }
         }
@@ -52,7 +54,7 @@ public class SingleOrgNetwork {
             private static final String name = "peer1";
 
             public static Peer get(HFClient fabClient, String tlsClientCert, String tlsClientKey) throws InvalidArgumentException {
-                Properties p = createProperties(tlsCaCert, tlsClientKey, tlsClientCert);
+                Properties p = createTlsAccessProperties(tlsCaCert);
                 return fabClient.newPeer(name, grpcUrl, p);
             }
         }
@@ -121,7 +123,7 @@ public class SingleOrgNetwork {
             static final String grpcUrl = "grpcs://orderer0.example.fnodocker.icu:7050";
 
             public static Orderer get(HFClient fabClient, String tlsClientCert, String tlsClientKey) throws InvalidArgumentException {
-                Properties p = createProperties(tlsCaCert, tlsClientKey, tlsClientCert);
+                Properties p = createTlsAccessProperties(tlsCaCert);
                 return fabClient.newOrderer(name, grpcUrl, p);
             }
         }
@@ -132,7 +134,7 @@ public class SingleOrgNetwork {
             static final String grpcUrl = "grpcs://orderer1.example.fnodocker.icu:8050";
 
             public static Orderer get(HFClient fabClient, String tlsClientCert, String tlsClientKey) throws InvalidArgumentException {
-                Properties p = createProperties(tlsCaCert, tlsClientKey, tlsClientCert);
+                Properties p = createTlsAccessProperties(tlsCaCert);
                 return fabClient.newOrderer(name, grpcUrl, p);
             }
         }
@@ -143,7 +145,7 @@ public class SingleOrgNetwork {
             static final String grpcUrl = "grpcs://orderer2.example.fnodocker.icu:9050";
 
             public static Orderer get(HFClient fabClient, String tlsClientCert, String tlsClientKey) throws InvalidArgumentException {
-                Properties p = createProperties(tlsCaCert, tlsClientKey, tlsClientCert);
+                Properties p = createTlsAccessProperties(tlsCaCert);
                 return fabClient.newOrderer(name, grpcUrl, p);
             }
         }
@@ -200,19 +202,5 @@ public class SingleOrgNetwork {
 
     private static User getUser(String userName, String mspId, String certFile, String keyFile) {
         return SimpleFabricUser.createInstance(userName, mspId, certFile, keyFile);
-    }
-
-    public static Properties createProperties(String serverTlsCert, String clientTlsKey, String clientTlsCert) {
-        Properties properties = new Properties();
-        properties.setProperty("sslProvider", "openSSL");
-        properties.setProperty("negotiationType", "TLS");
-        properties.put("pemFile", serverTlsCert);
-        properties.put("clientKeyFile", clientTlsKey);
-        properties.put("clientCertFile",clientTlsCert);
-
-        properties.put("grpc.NettyChannelBuilderOption.keepAliveTime", new Object[] {5L, TimeUnit.MINUTES});
-        properties.put("grpc.NettyChannelBuilderOption.keepAliveTimeout", new Object[] {8L, TimeUnit.SECONDS});
-        properties.put("grpc.NettyChannelBuilderOption.keepAliveWithoutCalls", new Object[] {true});
-        return properties;
     }
 }
