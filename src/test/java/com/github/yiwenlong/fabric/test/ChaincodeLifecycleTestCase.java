@@ -15,7 +15,10 @@
 //
 package com.github.yiwenlong.fabric.test;
 
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork;
+import com.github.yiwenlong.fabric.network.SingleOrgNetwork.MyChannel;
+import com.github.yiwenlong.fabric.network.SingleOrgNetwork.Orderers;
+import com.github.yiwenlong.fabric.network.SingleOrgNetwork.Org1;
+import com.github.yiwenlong.fabric.network.SingleOrgNetwork.TPS;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -42,19 +45,20 @@ public class ChaincodeLifecycleTestCase extends TestCase {
     }
 
     private HFClient client;
-    private Channel mychannel;
+
     private Peer peer0;
+    private Channel mychannel;
 
     public ChaincodeLifecycleTestCase(String name) {
         super(name);
         client = HFClient.createNewInstance();
         try {
             client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
-            client.setUserContext(SingleOrgNetwork.Org1.Admin.get());
-            mychannel = client.newChannel(SingleOrgNetwork.MyChannel.name);
-            peer0 = SingleOrgNetwork.Org1.getPeer0(client);
+            client.setUserContext(Org1.admin());
+            mychannel = client.newChannel(MyChannel.name);
+            peer0 = Org1.Peer0.get(client);
             mychannel.addPeer(peer0);
-            mychannel.addOrderer(SingleOrgNetwork.Orderers.getOrderer0(client));
+            mychannel.addOrderer(Orderers.Orderer0.get(client));
             BlockchainInfo blockchainInfo = mychannel.initialize().queryBlockchainInfo();
 
             System.out.println("Height: " + blockchainInfo.getHeight());
@@ -68,10 +72,13 @@ public class ChaincodeLifecycleTestCase extends TestCase {
 
     public void installChaincode() throws IOException, InvalidArgumentException {
         LifecycleInstallChaincodeRequest request = client.newLifecycleInstallChaincodeRequest();
-        request.setLifecycleChaincodePackage(LifecycleChaincodePackage.fromFile(new File(SingleOrgNetwork.TPS.chaincodePackage)));
+        request.setLifecycleChaincodePackage(LifecycleChaincodePackage.fromFile(new File(TPS.chaincodePackage)));
         Collection<LifecycleInstallChaincodeProposalResponse> responses;
         try {
-            responses = client.sendLifecycleInstallChaincodeRequest(request, SingleOrgNetwork.Org1.getPeers(client));
+            Collection<Peer> peers = new ArrayList<>();
+            peers.add(peer0);
+            peers.add(Org1.Peer1.get(client));
+            responses = client.sendLifecycleInstallChaincodeRequest(request, peers);
             for (LifecycleInstallChaincodeProposalResponse response: responses) {
                 System.out.println("status: " + response.getStatus().name());
                 System.out.println("txid: " + response.getTransactionID());
@@ -88,7 +95,10 @@ public class ChaincodeLifecycleTestCase extends TestCase {
         LifecycleQueryInstalledChaincodesRequest queryRequest = client.newLifecycleQueryInstalledChaincodesRequest();
         Collection<LifecycleQueryInstalledChaincodesProposalResponse> responses;
         try {
-            responses = client.sendLifecycleQueryInstalledChaincodes(queryRequest, SingleOrgNetwork.Org1.getPeers(client));
+            Collection<Peer> peers = new ArrayList<>();
+            peers.add(peer0);
+            peers.add(Org1.Peer1.get(client));
+            responses = client.sendLifecycleQueryInstalledChaincodes(queryRequest, peers);
             responses.forEach( response -> {
                 try {
                     Collection<LifecycleQueryInstalledChaincodesProposalResponse.LifecycleQueryInstalledChaincodesResult> ress =

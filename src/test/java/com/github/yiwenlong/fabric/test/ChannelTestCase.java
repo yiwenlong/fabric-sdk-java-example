@@ -15,19 +15,20 @@
 //
 package com.github.yiwenlong.fabric.test;
 
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork;
+import com.github.yiwenlong.fabric.network.SingleOrgNetwork.MyChannel;
+import com.github.yiwenlong.fabric.network.SingleOrgNetwork.Orderers;
+import com.github.yiwenlong.fabric.network.SingleOrgNetwork.Org1;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.hyperledger.fabric.sdk.BlockchainInfo;
-import org.hyperledger.fabric.sdk.Channel;
-import org.hyperledger.fabric.sdk.HFClient;
+import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.junit.Assert;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.Security;
 
@@ -44,7 +45,7 @@ public class ChannelTestCase extends TestCase {
         client = HFClient.createNewInstance();
         try {
             client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
-            client.setUserContext(SingleOrgNetwork.Org1.Admin.get());
+            client.setUserContext(Org1.admin());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -53,8 +54,12 @@ public class ChannelTestCase extends TestCase {
 
     public void createChannel() throws IOException, InvalidArgumentException {
         try {
-            Channel channel = SingleOrgNetwork.MyChannel.create(client);
-            Assert.assertEquals(channel.getName(), SingleOrgNetwork.MyChannel.name);
+            ChannelConfiguration config = new ChannelConfiguration(new File(MyChannel.configTx));
+            Orderer orderer0 = Orderers.Orderer0.get(client);
+            User admin = Org1.admin();
+            byte[] signature = client.getChannelConfigurationSignature(config, admin);
+            Channel channel = client.newChannel(MyChannel.name, orderer0, config, signature);
+            Assert.assertEquals(channel.getName(), MyChannel.name);
         } catch (TransactionException ex) {
             ex.printStackTrace();
             Assert.fail();
@@ -62,29 +67,29 @@ public class ChannelTestCase extends TestCase {
     }
 
     public void joinChannelPeer0() throws InvalidArgumentException {
-        Channel channel = client.newChannel(SingleOrgNetwork.MyChannel.name);
-        channel.addOrderer(SingleOrgNetwork.Orderers.getOrderer0(client));
+        Channel channel = client.newChannel(MyChannel.name);
+        channel.addOrderer(Orderers.Orderer0.get(client));
         try {
-            channel.joinPeer(SingleOrgNetwork.Org1.getPeer0(client));
+            channel.joinPeer(Org1.Peer0.get(client));
         } catch (ProposalException ex) {
             Assert.fail();
         }
     }
 
     public void joinChannelPeer1() throws InvalidArgumentException {
-        Channel channel = client.newChannel(SingleOrgNetwork.MyChannel.name);
-        channel.addOrderer(SingleOrgNetwork.Orderers.getOrderer0(client));
+        Channel channel = client.newChannel(MyChannel.name);
+        channel.addOrderer(Orderers.Orderer0.get(client));
         try {
-            channel.joinPeer(SingleOrgNetwork.Org1.getPeer1(client));
+            channel.joinPeer(Org1.Peer1.get(client));
         } catch (ProposalException ex) {
             Assert.fail();
         }
     }
 
     public void viewChannelInformation() throws InvalidArgumentException {
-        Channel channel = client.newChannel(SingleOrgNetwork.MyChannel.name);
-        channel.addPeer(SingleOrgNetwork.Org1.getPeer0(client));
-        channel.addOrderer(SingleOrgNetwork.Orderers.getOrderer0(client));
+        Channel channel = client.newChannel(MyChannel.name);
+        channel.addPeer(Org1.Peer1.get(client));
+        channel.addOrderer(Orderers.Orderer0.get(client));
         try {
             BlockchainInfo blockchainInfo = channel.initialize().queryBlockchainInfo();
             Assert.assertNotNull(blockchainInfo);

@@ -15,7 +15,9 @@
 //
 package com.github.yiwenlong.fabric.test;
 
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork;
+import com.github.yiwenlong.fabric.network.SingleOrgNetwork.MyChannel;
+import com.github.yiwenlong.fabric.network.SingleOrgNetwork.Orderers;
+import com.github.yiwenlong.fabric.network.SingleOrgNetwork.Org1;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -41,19 +43,19 @@ public class ChaincodeTestCase extends TestCase {
     private Channel mychannel;
     private Peer peer0;
 
-    private User user1 = SingleOrgNetwork.Org1.Admin.get();
+    private User user1 = Org1.user1();
 
     public ChaincodeTestCase(String name) {
         super(name);
         client = HFClient.createNewInstance();
         try {
             client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
-            client.setUserContext(SingleOrgNetwork.Org1.Admin.get());
+            client.setUserContext(Org1.admin());
 
-            mychannel = client.newChannel(SingleOrgNetwork.MyChannel.name);
-            peer0 = SingleOrgNetwork.Org1.getPeer0(client);
+            mychannel = client.newChannel(MyChannel.name);
+            peer0 = Org1.Peer0.get(client);
             mychannel.addPeer(peer0);
-            mychannel.addOrderer(SingleOrgNetwork.Orderers.getOrderer0(client));
+            mychannel.addOrderer(Orderers.Orderer0.get(client));
             BlockchainInfo blockchainInfo = mychannel.initialize().queryBlockchainInfo();
 
             System.out.println("Height: " + blockchainInfo.getHeight());

@@ -15,18 +15,15 @@
 //
 package com.github.yiwenlong.fabric.network;
 
-import com.github.yiwenlong.fabric.SimpleFabricUser;
-import org.hyperledger.fabric.sdk.*;
+import com.github.yiwenlong.fabric.Organization;
+import org.hyperledger.fabric.sdk.HFClient;
+import org.hyperledger.fabric.sdk.Orderer;
+import org.hyperledger.fabric.sdk.Peer;
+import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
-import org.hyperledger.fabric.sdk.exception.TransactionException;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Properties;
-
-import static com.github.yiwenlong.fabric.utils.PropertiesHelper.createTlsAccessProperties;
+import java.io.FileNotFoundException;
 
 public class SingleOrgNetwork {
 
@@ -34,17 +31,26 @@ public class SingleOrgNetwork {
 
     public static class Org1 {
 
-        private static final String Org1MspId = "Org1MSP";
+        private static final String MspId = "Org1MSP";
+        private static final String Domain = "org1.example.fnodocker.icu";
         private static final String CryptoDir = BaseSampleDir + "/Org1/crypto-config/peerOrganizations/org1.example.fnodocker.icu";
-        static final String tlsCaCert = CryptoDir + "/tlsca/tlsca.org1.example.fnodocker.icu-cert.pem";
+
+        private static Organization organization;
+
+        static {
+            try {
+                organization = new Organization(MspId, Domain, new File(CryptoDir)).init();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
 
         public static class Peer0 {
             private static final String grpcUrl = "grpcs://peer0.org1.example.fnodocker.icu:7051";
             private static final String name = "peer0";
 
-            public static Peer get(HFClient fabClient) throws InvalidArgumentException {
-                Properties p = createTlsAccessProperties(tlsCaCert);
-                return fabClient.newPeer(name, grpcUrl, p);
+            public static Peer get(HFClient client) throws InvalidArgumentException {
+                return organization.getPeer(client, name, grpcUrl);
             }
         }
 
@@ -52,47 +58,17 @@ public class SingleOrgNetwork {
             private static final String grpcUrl = "grpcs://peer1.org1.example.fnodocker.icu:8051";
             private static final String name = "peer1";
 
-            public static Peer get(HFClient fabClient) throws InvalidArgumentException {
-                Properties p = createTlsAccessProperties(tlsCaCert);
-                return fabClient.newPeer(name, grpcUrl, p);
+            public static Peer get(HFClient client) throws InvalidArgumentException {
+                return organization.getPeer(client, name, grpcUrl);
             }
         }
 
-        public static class Admin {
-            static final String name = "admin";
-            static final String adminCryptoDir = CryptoDir + "/users/Admin@org1.example.fnodocker.icu";
-            public static final String keyFile = adminCryptoDir + "/msp/keystore/priv_sk";
-            static final String certFile = adminCryptoDir + "/msp/signcerts/Admin@org1.example.fnodocker.icu-cert.pem";
-
-            public static User get() {
-                return getUser(name, Org1MspId, certFile, keyFile);
-            }
+        public static User admin() {
+            return organization.getUser("Admin");
         }
 
-        public static class User1 {
-            static final String name = "user1";
-            static final String user1CryptoDir = CryptoDir + "/users/User1@org1.example.fnodocker.icu";
-            static final String keyFile = user1CryptoDir + "/msp/keystore/priv_sk";
-            static final String certFile = user1CryptoDir + "/msp/signcerts/User1@org1.example.fnodocker.icu-cert.pem";
-
-            public static User get() {
-                return getUser(name, Org1MspId, certFile, keyFile);
-            }
-        }
-
-        public static Peer getPeer0(HFClient client) throws InvalidArgumentException {
-            return Peer0.get(client);
-        }
-
-        public static Peer getPeer1(HFClient client) throws InvalidArgumentException {
-            return Peer1.get(client);
-        }
-
-        public static Collection<Peer> getPeers(HFClient client) throws InvalidArgumentException {
-            Collection<Peer> peers = new ArrayList<>();
-            peers.add(getPeer0(client));
-            peers.add(getPeer1(client));
-            return peers;
+        public static User user1() {
+            return organization.getUser("User1");
         }
     }
 
@@ -100,89 +76,34 @@ public class SingleOrgNetwork {
 
         private static final String CryptoDir = BaseSampleDir + "/Orderer/crypto-config/ordererOrganizations/example.fnodocker.icu";
         private static final String MspId = "OrdererMSP";
-        static final String tlsCaCert = CryptoDir + "/tlsca/tlsca.example.fnodocker.icu-cert.pem";
+        private static final String Domain = "example.fnodocker.icu";
+
+        private static Organization organization;
+
+        static {
+            try {
+                organization = new Organization(MspId, Domain, new File(CryptoDir)).init();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
 
         public static class Orderer0 {
+            public static final String name = "orderer0";
+            public static final String grpcUrl = "grpcs://orderer0.example.fnodocker.icu:7050";
 
-            static final String name = "orderer0";
-            static final String grpcUrl = "grpcs://orderer0.example.fnodocker.icu:7050";
-
-            public static Orderer get(HFClient fabClient) throws InvalidArgumentException {
-                Properties p = createTlsAccessProperties(tlsCaCert);
-                return fabClient.newOrderer(name, grpcUrl, p);
+            public static Orderer get(HFClient client) throws InvalidArgumentException {
+                return organization.getOrderer(client, name, grpcUrl);
             }
-        }
-
-        public static class Orderer1 {
-
-            static final String name = "orderer1";
-            static final String grpcUrl = "grpcs://orderer1.example.fnodocker.icu:8050";
-
-            public static Orderer get(HFClient fabClient) throws InvalidArgumentException {
-                Properties p = createTlsAccessProperties(tlsCaCert);
-                return fabClient.newOrderer(name, grpcUrl, p);
-            }
-        }
-
-        public static class Orderer2 {
-
-            static final String name = "orderer2";
-            static final String grpcUrl = "grpcs://orderer2.example.fnodocker.icu:9050";
-
-            public static Orderer get(HFClient fabClient) throws InvalidArgumentException {
-                Properties p = createTlsAccessProperties(tlsCaCert);
-                return fabClient.newOrderer(name, grpcUrl, p);
-            }
-        }
-
-        public static class Admin {
-            static final String name = "admin";
-            static final String adminCryptoDir = CryptoDir + "/users/Admin@example.fnodocker.icu";
-
-            static final String certFile = adminCryptoDir + "/msp/signcerts/Admin@example.fnodocker.icu-cert.pem";
-            static final String keyFile = adminCryptoDir + "/msp/keystore/priv_sk";
-
-            public static User get() {
-                return getUser(name, MspId, certFile, keyFile);
-            }
-        }
-
-        public static Orderer getOrderer0(HFClient client) throws InvalidArgumentException {
-            return Orderer0.get(client);
-        }
-
-        public static Orderer getOrderer1(HFClient client) throws InvalidArgumentException {
-            return Orderer1.get(client);
-        }
-
-        public static Orderer getOrderer2(HFClient client) throws InvalidArgumentException {
-            return Orderer2.get(client);
         }
     }
 
     public static class MyChannel {
-
-        static final String configTx = BaseSampleDir + "/channel-mychannel/mychannel.tx";
+        public static final String configTx = BaseSampleDir + "/channel-mychannel/mychannel.tx";
         public static final String name = "mychannel";
-
-        public static ChannelConfiguration getChannelConfiguration() throws IOException, InvalidArgumentException {
-            return new ChannelConfiguration(new File(configTx));
-        }
-
-        public static Channel create(HFClient client) throws IOException, InvalidArgumentException, TransactionException {
-            ChannelConfiguration config = getChannelConfiguration();
-            Orderer orderer = Orderers.getOrderer1(client);
-            User org1Admin = Org1.Admin.get();
-            byte[] signature = client.getChannelConfigurationSignature(config, org1Admin);
-            return client.newChannel(name, orderer, config, signature);
-        }
     }
 
     public static class TPS {
         public static final String chaincodePackage = BaseSampleDir + "/chaincode-tps/tps.tar.gz";
-    }
-
-    private static User getUser(String userName, String mspId, String certFile, String keyFile) {
-        return SimpleFabricUser.createInstance(userName, mspId, certFile, keyFile);
     }
 }
