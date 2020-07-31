@@ -34,7 +34,7 @@ public class Organization {
     private final File cryptoConfigDir;
 
     private String tlsCaCertFilePath;
-    private Map<String, User> name2Users = new HashMap<>();
+    private final Map<String, User> name2Users = new HashMap<>();
 
     public Organization(String mspId, String domain, File cryptoConfigDir) {
         this.mspId = mspId;

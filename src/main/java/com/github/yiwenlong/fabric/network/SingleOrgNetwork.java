@@ -96,6 +96,10 @@ public class SingleOrgNetwork {
                 return organization.getOrderer(client, name, grpcUrl);
             }
         }
+
+        public static User admin() {
+            return organization.getUser("Admin");
+        }
     }
 
     public static class MyChannel {
