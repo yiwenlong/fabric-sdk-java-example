@@ -1,6 +1,9 @@
 package com.github.yiwenlong.fabric.test;
 
 import com.github.yiwenlong.fabric.network.SingleOrgNetwork;
+import com.github.yiwenlong.fabric.utils.FileUtils;
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.hyperledger.fabric.protos.common.Configtx;
 import org.hyperledger.fabric.sdk.Channel;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.Orderer;
@@ -12,6 +15,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.security.Security;
 
 public class SystemChannelTest {
@@ -38,8 +42,9 @@ public class SystemChannelTest {
     }
 
     @Test
-    public void testViewSystemChannelInformation() throws TransactionException, InvalidArgumentException {
+    public void testViewSystemChannelInformation() throws TransactionException, InvalidArgumentException, IOException {
         byte[] configuration = sysChannel.getChannelConfigurationBytes();
-        Assert.assertNotNull(configuration);
+        Configtx.Config config = Configtx.Config.parseFrom(configuration);
+        Assert.assertArrayEquals(configuration, config.toByteArray());
     }
 }
