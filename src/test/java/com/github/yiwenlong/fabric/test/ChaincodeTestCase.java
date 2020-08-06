@@ -15,95 +15,62 @@
 //
 package com.github.yiwenlong.fabric.test;
 
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork.MyChannel;
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork.Orderers;
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork.Org1;
+import com.github.yiwenlong.fabric.ChaincodeProposal;
+import com.github.yiwenlong.fabric.FabricService;
+import com.github.yiwenlong.fabric.Organization;
+import com.github.yiwenlong.fabric.network.NetworkOrganizationConfig;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.hyperledger.fabric.sdk.*;
+import org.hyperledger.fabric.sdk.Orderer;
+import org.hyperledger.fabric.sdk.Peer;
+import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
-import org.hyperledger.fabric.sdk.security.CryptoSuite;
-import org.junit.Assert;
+import org.hyperledger.fabric.sdk.exception.TransactionException;
 
-import java.security.Security;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
+import java.io.FileNotFoundException;
 import java.util.concurrent.ExecutionException;
 
 public class ChaincodeTestCase extends TestCase {
 
-    static {
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-    }
+    private final FabricService service = FabricService.service();
 
-    private HFClient client;
-    private Channel mychannel;
-    private Peer peer0;
+    private Organization org1, ordererOrg;
+    private User org1Admin;
 
-    private User user1 = Org1.user1();
+    private final String channelName = "mychannel";
+    private final String chaincodeName = "tps";
 
     public ChaincodeTestCase(String name) {
         super(name);
-        client = HFClient.createNewInstance();
         try {
-            client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
-            client.setUserContext(Org1.admin());
-
-            mychannel = client.newChannel(MyChannel.name);
-            peer0 = Org1.Peer0.get(client);
-            mychannel.addPeer(peer0);
-            mychannel.addOrderer(Orderers.Orderer0.get(client));
-            BlockchainInfo blockchainInfo = mychannel.initialize().queryBlockchainInfo();
-
-            System.out.println("Height: " + blockchainInfo.getHeight());
-            System.out.println("Current block hash: " + Base64.getEncoder().encodeToString(blockchainInfo.getCurrentBlockHash()));
-            System.out.println("Previous block hash: " + Base64.getEncoder().encodeToString(blockchainInfo.getPreviousBlockHash()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            this.org1 = new Organization(NetworkOrganizationConfig.Org1).init();
+            this.ordererOrg = new Organization(NetworkOrganizationConfig.Orderer).init();
+            this.org1Admin = org1.user("Admin");
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
         }
     }
 
-    public void invoke() {
-        TransactionProposalRequest proposalRequest = (TransactionProposalRequest) TransactionProposalRequest.newInstance(user1)
-                .setArgs("whoami", "yiwenlong")
-                .setFcn("put");
-        proposalRequest.setChaincodeName("tps");
-        Collection<ProposalResponse> responses;
-        try {
-            responses = mychannel.sendTransactionProposal(proposalRequest);
-            CompletableFuture<BlockEvent.TransactionEvent> transactionEventCompletableFuture =  mychannel.sendTransaction(responses);
-            BlockEvent.TransactionEvent transactionEvent = transactionEventCompletableFuture.get();
-            Assert.assertTrue(transactionEvent.isValid());
-        } catch (ProposalException | InvalidArgumentException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
+    public void invoke() throws InvalidArgumentException, InterruptedException, ExecutionException, TransactionException, ProposalException {
+        Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
+        ChaincodeProposal proposal = new ChaincodeProposal()
+                .args("whoami", "yiwenlong")
+                .funcName("put")
+                .chaincodeName(chaincodeName);
+        service.invokeTps(channelName, proposal, orderer, peer0);
     }
 
-    public void query() {
-        QueryByChaincodeRequest request = (QueryByChaincodeRequest) QueryByChaincodeRequest.newInstance(user1)
-                .setFcn("get")
-                .setArgs("whoami");
-        request.setChaincodeName("tps");
-        Collection<ProposalResponse>  responses;
-        try {
-            responses = mychannel.queryByChaincode(request);
-            responses.forEach( response -> {
-                try {
-                    System.out.println(new String(response.getChaincodeActionResponsePayload()));
-                } catch (InvalidArgumentException e) {
-                    e.printStackTrace();
-                    Assert.fail();
-                }
-            });
-        } catch (ProposalException | InvalidArgumentException e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
+    public void query() throws InvalidArgumentException, ProposalException, TransactionException {
+        Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
+        ChaincodeProposal proposal = new ChaincodeProposal()
+                .args("whoami")
+                .funcName("get")
+                .chaincodeName(chaincodeName);
+        service.queryChaincode(channelName, proposal,  orderer, peer0);
     }
 
     public static Test suite() {

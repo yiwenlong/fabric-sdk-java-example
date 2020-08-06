@@ -9,6 +9,7 @@ import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import java.io.File;
 import java.io.IOException;
 import java.security.Security;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -85,11 +86,20 @@ public class FabricService {
         try {
             mychannel = setUpChannel(channelName, orderer, peers);
             Collection<ProposalResponse> rs = mychannel.sendTransactionProposal(proposalRequest, Arrays.asList(peers));
-            rs.forEach(response -> System.out.printf("%s proposal result: %s\n", response.getPeer().toString(), response.isVerified()));
-
-            CompletableFuture<BlockEvent.TransactionEvent> txFuture = mychannel.sendTransaction(rs);
-            BlockEvent.TransactionEvent txEvent = txFuture.get();
-            assert txEvent.isValid();
+            Collection<ProposalResponse> toSend = new ArrayList<>();
+            rs.forEach(response -> {
+                if (response.isVerified()) {
+                    toSend.add(response);
+                    System.out.printf("%s proposal result: %s\n", response.getPeer().toString(), response.isVerified());
+                } else {
+                    System.out.printf("%s error message: %s\n", response.getPeer().toString(), response.getMessage());
+                }
+            });
+            if (toSend.size() > 0) {
+                CompletableFuture<BlockEvent.TransactionEvent> txFuture = mychannel.sendTransaction(toSend);
+                BlockEvent.TransactionEvent txEvent = txFuture.get();
+                assert txEvent.isValid();
+            }
         } finally {
             assert mychannel != null;
             mychannel.shutdown(true);
@@ -108,6 +118,10 @@ public class FabricService {
             Collection<ProposalResponse> rs = mychannel.sendTransactionProposal(proposalRequest, Arrays.asList(peers));
             rs.forEach(response -> {
                 try {
+                    if (response.isInvalid()) {
+                        System.out.println(response.getMessage());
+                        return;
+                    }
                     System.out.printf("%s proposal result: %s\n",
                             response.getPeer().toString(),
                             new String(response.getChaincodeActionResponsePayload()));

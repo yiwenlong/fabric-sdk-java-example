@@ -57,18 +57,18 @@ public class ChaincodeLifecycleTestCase extends TestCase {
     public void installChaincode() throws IOException, InvalidArgumentException, ProposalException {
         String ccPackage = "network/chaincode-tps/tps.tar.gz";
         Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
-        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
         service.installChaincode(ccPackage, peer0);
     }
 
     public void queryInstalledChaincode() throws InvalidArgumentException, ProposalException {
-        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
         service.queryInstalledChaincode(peer0);
     }
 
     public void approveChaincode() throws InvalidArgumentException, ProposalException, TransactionException {
         Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
-        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
         ChaincodeDefinition definition = new ChaincodeDefinition()
                 .chaincodeName("tps")
                 .packageId("tps:818934162895283ba4fa6d04149aa40179768279d963d0c81f6b9feff20e4421")
@@ -80,7 +80,7 @@ public class ChaincodeLifecycleTestCase extends TestCase {
 
     public void queryApproveChaincode() throws InvalidArgumentException, ProposalException, TransactionException {
         Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
-        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
         ChaincodeDefinition definition = new ChaincodeDefinition()
                 .chaincodeName(chaincodeName)
                 .init(false)
@@ -91,7 +91,7 @@ public class ChaincodeLifecycleTestCase extends TestCase {
 
     public void commitChaincode() throws InvalidArgumentException, InterruptedException, ExecutionException, TransactionException, ProposalException {
         Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
-        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
         ChaincodeDefinition definition = new ChaincodeDefinition()
                 .chaincodeName(chaincodeName)
                 .init(false)
@@ -102,7 +102,7 @@ public class ChaincodeLifecycleTestCase extends TestCase {
 
     public void queryCommittedChaincode() throws InvalidArgumentException, ProposalException, TransactionException {
         Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
-        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
         service.queryDefinedChaincode(channelName, orderer, peer0);
     }
 
