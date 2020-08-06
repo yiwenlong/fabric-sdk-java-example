@@ -82,18 +82,18 @@ public class Organization {
     }
 
     public Peer getPeer(HFClient client, String name, String grpcUrl) throws InvalidArgumentException {
-        return new NodeBuilder(client)
+        return new NodeBuilder()
                 .grpcUrl(grpcUrl)
                 .name(name)
                 .tlsCaFile(tlsCaCertFilePath)
-                .buildPeer();
+                .buildPeer(client);
     }
 
     public Orderer getOrderer(HFClient client, String name, String grpcUrl) throws InvalidArgumentException {
-        return new NodeBuilder(client)
+        return new NodeBuilder()
                 .grpcUrl(grpcUrl)
                 .name(name)
                 .tlsCaFile(tlsCaCertFilePath)
-                .buildOrderer();
+                .buildOrderer(client);
     }
 }

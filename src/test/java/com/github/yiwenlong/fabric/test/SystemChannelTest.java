@@ -1,8 +1,6 @@
 package com.github.yiwenlong.fabric.test;
 
 import com.github.yiwenlong.fabric.network.SingleOrgNetwork;
-import com.github.yiwenlong.fabric.utils.FileUtils;
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.hyperledger.fabric.protos.common.Configtx;
 import org.hyperledger.fabric.sdk.Channel;
 import org.hyperledger.fabric.sdk.HFClient;

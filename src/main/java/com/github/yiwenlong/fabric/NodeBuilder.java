@@ -26,12 +26,8 @@ import static com.github.yiwenlong.fabric.utils.PropertiesHelper.createTlsAccess
 
 public class NodeBuilder {
 
-    private final HFClient client;
     private String name, grpcUrl, tlsCaFile;
 
-    public NodeBuilder(HFClient fclient) {
-        this.client = fclient;
-    }
 
     public NodeBuilder name(String name) {
         this.name = name;
@@ -48,12 +44,12 @@ public class NodeBuilder {
         return this;
     }
 
-    public Orderer buildOrderer() throws InvalidArgumentException {
+    public Orderer buildOrderer(HFClient client) throws InvalidArgumentException {
         Properties prop = createTlsAccessProperties(tlsCaFile);
         return client.newOrderer(name, grpcUrl, prop);
     }
 
-    public Peer buildPeer() throws InvalidArgumentException {
+    public Peer buildPeer(HFClient client) throws InvalidArgumentException {
         Properties prop = createTlsAccessProperties(tlsCaFile);
         return client.newPeer(name, grpcUrl, prop);
     }
