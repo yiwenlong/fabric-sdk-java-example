@@ -15,202 +15,95 @@
 //
 package com.github.yiwenlong.fabric.test;
 
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork.MyChannel;
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork.Orderers;
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork.Org1;
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork.TPS;
+import com.github.yiwenlong.fabric.ChaincodeDefinition;
+import com.github.yiwenlong.fabric.FabricService;
+import com.github.yiwenlong.fabric.Organization;
+import com.github.yiwenlong.fabric.network.NetworkOrganizationConfig;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.hyperledger.fabric.sdk.*;
+import org.hyperledger.fabric.sdk.Orderer;
+import org.hyperledger.fabric.sdk.Peer;
+import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
-import org.hyperledger.fabric.sdk.security.CryptoSuite;
-import org.junit.Assert;
+import org.hyperledger.fabric.sdk.exception.TransactionException;
 
-import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.security.Security;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class ChaincodeLifecycleTestCase extends TestCase {
 
-    static {
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-    }
+    private final FabricService service = FabricService.service();
 
-    private HFClient client;
+    private Organization org1, ordererOrg;
+    private User org1Admin;
 
-    private Peer peer0;
-    private Channel mychannel;
+    private final String channelName = "mychannel";
+    private final String chaincodeName = "tps";
 
     public ChaincodeLifecycleTestCase(String name) {
         super(name);
-        client = HFClient.createNewInstance();
         try {
-            client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
-            client.setUserContext(Org1.admin());
-            mychannel = client.newChannel(MyChannel.name);
-            peer0 = Org1.Peer0.get(client);
-            mychannel.addPeer(peer0);
-            mychannel.addOrderer(Orderers.Orderer0.get(client));
-            BlockchainInfo blockchainInfo = mychannel.initialize().queryBlockchainInfo();
-
-            System.out.println("Height: " + blockchainInfo.getHeight());
-            System.out.println("Current block hash: " + Base64.getEncoder().encodeToString(blockchainInfo.getCurrentBlockHash()));
-            System.out.println("Previous block hash: " + Base64.getEncoder().encodeToString(blockchainInfo.getPreviousBlockHash()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            this.org1 = new Organization(NetworkOrganizationConfig.Org1).init();
+            this.ordererOrg = new Organization(NetworkOrganizationConfig.Orderer).init();
+            this.org1Admin = org1.user("Admin");
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
         }
     }
 
-    public void installChaincode() throws IOException, InvalidArgumentException {
-        LifecycleInstallChaincodeRequest request = client.newLifecycleInstallChaincodeRequest();
-        request.setLifecycleChaincodePackage(LifecycleChaincodePackage.fromFile(new File(TPS.chaincodePackage)));
-        Collection<LifecycleInstallChaincodeProposalResponse> responses;
-        try {
-            Collection<Peer> peers = new ArrayList<>();
-            peers.add(peer0);
-            peers.add(Org1.Peer1.get(client));
-            responses = client.sendLifecycleInstallChaincodeRequest(request, peers);
-            for (LifecycleInstallChaincodeProposalResponse response: responses) {
-                System.out.println("status: " + response.getStatus().name());
-                System.out.println("txid: " + response.getTransactionID());
-                System.out.println("message" + response.getMessage());
-                System.out.println("Package Id: " + response.getPackageId());
-            }
-        } catch (ProposalException e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
+    public void installChaincode() throws IOException, InvalidArgumentException, ProposalException {
+        String ccPackage = "network/chaincode-tps/tps.tar.gz";
+        Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        service.installChaincode(ccPackage, peer0);
     }
 
-    public void queryInstalledChaincode() throws InvalidArgumentException {
-        LifecycleQueryInstalledChaincodesRequest queryRequest = client.newLifecycleQueryInstalledChaincodesRequest();
-        Collection<LifecycleQueryInstalledChaincodesProposalResponse> responses;
-        try {
-            Collection<Peer> peers = new ArrayList<>();
-            peers.add(peer0);
-            peers.add(Org1.Peer1.get(client));
-            responses = client.sendLifecycleQueryInstalledChaincodes(queryRequest, peers);
-            responses.forEach( response -> {
-                try {
-                    Collection<LifecycleQueryInstalledChaincodesProposalResponse.LifecycleQueryInstalledChaincodesResult> ress =
-                            response.getLifecycleQueryInstalledChaincodesResult();
-                    ress.forEach( res -> {
-                        System.out.println(res.getLabel());
-                        System.out.println(res.getPackageId());
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Assert.fail();
-                }
-            });
-        } catch (ProposalException e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
+    public void queryInstalledChaincode() throws InvalidArgumentException, ProposalException {
+        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        service.queryInstalledChaincode(peer0);
     }
 
-    public void approveChaincode() throws InvalidArgumentException {
-        LifecycleApproveChaincodeDefinitionForMyOrgRequest request = client.newLifecycleApproveChaincodeDefinitionForMyOrgRequest();
-        request.setChaincodeName("tps");
-        request.setInitRequired(false);
-        request.setSequence(1);
-        request.setChaincodeVersion("1");
-        request.setPackageId("tps:818934162895283ba4fa6d04149aa40179768279d963d0c81f6b9feff20e4421");
-        Collection<Peer> peers = new ArrayList<>();
-        peers.add(peer0);
-        Collection<LifecycleApproveChaincodeDefinitionForMyOrgProposalResponse>  response;
-        try {
-            response = mychannel.sendLifecycleApproveChaincodeDefinitionForMyOrgProposal(request, peers);
-            CompletableFuture<BlockEvent.TransactionEvent> txFuture = mychannel.sendTransaction(response);
-            BlockEvent.TransactionEvent txEvent;
-            try {
-                txEvent = txFuture.get();
-                Assert.assertTrue(txEvent.isValid());
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                Assert.fail();
-            }
-        } catch (ProposalException e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
+    public void approveChaincode() throws InvalidArgumentException, ProposalException, TransactionException {
+        Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        ChaincodeDefinition definition = new ChaincodeDefinition()
+                .chaincodeName("tps")
+                .packageId("tps:818934162895283ba4fa6d04149aa40179768279d963d0c81f6b9feff20e4421")
+                .init(false)
+                .sequence(1)
+                .version("1.0");
+        service.approveChaincodeDefinition(channelName, definition, orderer, peer0);
     }
 
-    public void queryApproveChaincode() throws InvalidArgumentException {
-        Collection<Peer> peers = new ArrayList<>();
-        peers.add(peer0);
-        LifecycleCheckCommitReadinessRequest request = client.newLifecycleSimulateCommitChaincodeDefinitionRequest();
-        request.setChaincodeName("tps");
-        request.setInitRequired(false);
-        request.setSequence(1);
-        request.setChaincodeVersion("1");
-        Collection<LifecycleCheckCommitReadinessProposalResponse> responses;
-        try {
-            responses = mychannel.sendLifecycleCheckCommitReadinessRequest(request, peers);
-            responses.forEach(response -> {
-                try {
-                    Map<String, Boolean> approvalsMap = response.getApprovalsMap();
-                    approvalsMap.forEach((org, isProval) -> System.out.printf("Org: %s, %s\n", org, isProval));
-                } catch (ProposalException e) {
-                    e.printStackTrace();
-                    Assert.fail();
-                }
-            });
-        } catch (ProposalException e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
+    public void queryApproveChaincode() throws InvalidArgumentException, ProposalException, TransactionException {
+        Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        ChaincodeDefinition definition = new ChaincodeDefinition()
+                .chaincodeName(chaincodeName)
+                .init(false)
+                .sequence(1)
+                .version("1.0");
+        service.queryChaincodeApprove(channelName, definition, orderer, peer0);
     }
 
-    public void commitChaincode() throws InvalidArgumentException {
-        LifecycleCommitChaincodeDefinitionRequest request = client.newLifecycleCommitChaincodeDefinitionRequest();
-        request.setChaincodeName("tps");
-        request.setSequence(1);
-        request.setChaincodeVersion("1");
-        request.setInitRequired(false);
-        Collection<Peer> peers = new ArrayList<>();
-        peers.add(peer0);
-        Collection<LifecycleCommitChaincodeDefinitionProposalResponse> responses;
-        try {
-            responses = mychannel.sendLifecycleCommitChaincodeDefinitionProposal(request, peers);
-            responses.forEach(response -> System.out.println(response.getMessage()));
-            CompletableFuture<BlockEvent.TransactionEvent> txFuture = mychannel.sendTransaction(responses);
-            BlockEvent.TransactionEvent txEvent = txFuture.get();
-            Assert.assertTrue(txEvent.isValid());
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
+    public void commitChaincode() throws InvalidArgumentException, InterruptedException, ExecutionException, TransactionException, ProposalException {
+        Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        ChaincodeDefinition definition = new ChaincodeDefinition()
+                .chaincodeName(chaincodeName)
+                .init(false)
+                .sequence(1)
+                .version("1.0");
+        service.commitChaincodeDefinition(channelName, definition, orderer, peer0);
     }
 
-    public void queryCommittedChaincode() {
-        LifecycleQueryChaincodeDefinitionsRequest request = client.newLifecycleQueryChaincodeDefinitionsRequest();
-        Collection<Peer> peers = new ArrayList<>();
-        peers.add(peer0);
-        Collection<LifecycleQueryChaincodeDefinitionsProposalResponse> reponses;
-        try {
-            reponses = mychannel.lifecycleQueryChaincodeDefinitions(request, peers);
-            reponses.forEach(response -> {
-                try {
-                    response.getLifecycleQueryChaincodeDefinitionsResult().iterator().forEachRemaining(result -> System.out.println(result.getName()));
-                } catch (ProposalException e) {
-                    e.printStackTrace();
-                    Assert.fail();
-                }
-            });
-        } catch (InvalidArgumentException | ProposalException e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
+    public void queryCommittedChaincode() throws InvalidArgumentException, ProposalException, TransactionException {
+        Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        service.queryDefinedChaincode(channelName, orderer, peer0);
     }
 
     public static Test suite() {

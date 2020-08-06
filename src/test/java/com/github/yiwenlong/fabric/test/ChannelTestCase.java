@@ -28,6 +28,7 @@ import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionException;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class ChannelTestCase extends TestCase {
@@ -37,17 +38,21 @@ public class ChannelTestCase extends TestCase {
     private Organization org1, ordererOrg;
     private User org1Admin;
 
-    private final String channelName = "";
+    private final String channelName = "mychannel";
 
     public ChannelTestCase(String name) {
         super(name);
-        this.org1 = new Organization(NetworkOrganizationConfig.Org1);
-        this.ordererOrg = new Organization(NetworkOrganizationConfig.Orderer);
-        org1Admin = org1.user("Admin");
+        try {
+            this.org1 = new Organization(NetworkOrganizationConfig.Org1).init();
+            this.ordererOrg = new Organization(NetworkOrganizationConfig.Orderer).init();
+            this.org1Admin = org1.user("Admin");
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        }
     }
 
     public void createChannel() throws IOException, InvalidArgumentException, TransactionException {
-        String txFile = "";
+        String txFile = "network/channel-mychannel/mychannel.tx";
         Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
         service.createChannel(channelName, txFile, orderer, org1Admin);
     }
