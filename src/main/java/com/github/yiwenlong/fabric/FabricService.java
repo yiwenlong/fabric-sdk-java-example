@@ -38,10 +38,14 @@ public class FabricService {
         return service;
     }
 
-    public Peer buildPeer(Organization organization, String peer, String user) throws InvalidArgumentException {
-        User mUser = organization.user(user);
-        client.setUserContext(mUser);
+    public Peer buildPeer(Organization organization, String peer, User user) throws InvalidArgumentException {
+        client.setUserContext(user);
         return organization.peer(client, peer);
+    }
+
+    public Orderer buildOrderer(Organization organization, String orderer, User user) throws InvalidArgumentException {
+        client.setUserContext(user);
+        return organization.orderer(client, orderer);
     }
 
     public void installChaincode(String packageFile, Peer... peers) throws IOException, InvalidArgumentException, ProposalException {

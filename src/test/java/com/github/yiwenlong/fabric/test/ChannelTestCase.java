@@ -15,88 +15,53 @@
 //
 package com.github.yiwenlong.fabric.test;
 
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork.MyChannel;
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork.Orderers;
-import com.github.yiwenlong.fabric.network.SingleOrgNetwork.Org1;
+import com.github.yiwenlong.fabric.FabricService;
+import com.github.yiwenlong.fabric.Organization;
+import com.github.yiwenlong.fabric.network.NetworkOrganizationConfig;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.hyperledger.fabric.sdk.*;
+import org.hyperledger.fabric.sdk.Orderer;
+import org.hyperledger.fabric.sdk.Peer;
+import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionException;
-import org.hyperledger.fabric.sdk.security.CryptoSuite;
-import org.junit.Assert;
 
-import java.io.File;
 import java.io.IOException;
-import java.security.Security;
 
 public class ChannelTestCase extends TestCase {
 
-    static {
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-    }
+    private final FabricService service = FabricService.service();
 
-    private HFClient client;
+    private Organization org1, ordererOrg;
+    private User org1Admin;
+
+    private final String channelName = "";
 
     public ChannelTestCase(String name) {
         super(name);
-        client = HFClient.createNewInstance();
-        try {
-            client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
-            client.setUserContext(Org1.admin());
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
+        this.org1 = new Organization(NetworkOrganizationConfig.Org1);
+        this.ordererOrg = new Organization(NetworkOrganizationConfig.Orderer);
+        org1Admin = org1.user("Admin");
     }
 
-    public void createChannel() throws IOException, InvalidArgumentException {
-        try {
-            ChannelConfiguration config = new ChannelConfiguration(new File(MyChannel.configTx));
-            Orderer orderer0 = Orderers.Orderer0.get(client);
-            User admin = Org1.admin();
-            byte[] signature = client.getChannelConfigurationSignature(config, admin);
-            Channel channel = client.newChannel(MyChannel.name, orderer0, config, signature);
-            Assert.assertEquals(channel.getName(), MyChannel.name);
-        } catch (TransactionException ex) {
-            ex.printStackTrace();
-            Assert.fail();
-        }
+    public void createChannel() throws IOException, InvalidArgumentException, TransactionException {
+        String txFile = "";
+        Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
+        service.createChannel(channelName, txFile, orderer, org1Admin);
     }
 
-    public void joinChannelPeer0() throws InvalidArgumentException {
-        Channel channel = client.newChannel(MyChannel.name);
-        channel.addOrderer(Orderers.Orderer0.get(client));
-        try {
-            channel.joinPeer(Org1.Peer0.get(client));
-        } catch (ProposalException ex) {
-            Assert.fail();
-        }
+    public void joinChannelPeer0() throws InvalidArgumentException, ProposalException {
+        Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
+        service.joinChannel(channelName, orderer, peer0, org1Admin);
     }
 
-    public void joinChannelPeer1() throws InvalidArgumentException {
-        Channel channel = client.newChannel(MyChannel.name);
-        channel.addOrderer(Orderers.Orderer0.get(client));
-        try {
-            channel.joinPeer(Org1.Peer1.get(client));
-        } catch (ProposalException ex) {
-            Assert.fail();
-        }
-    }
-
-    public void viewChannelInformation() throws InvalidArgumentException {
-        Channel channel = client.newChannel(MyChannel.name);
-        channel.addPeer(Org1.Peer1.get(client));
-        channel.addOrderer(Orderers.Orderer0.get(client));
-        try {
-            BlockchainInfo blockchainInfo = channel.initialize().queryBlockchainInfo();
-            Assert.assertNotNull(blockchainInfo);
-        } catch (TransactionException | ProposalException ex) {
-            ex.printStackTrace();
-            Assert.fail();
-        }
+    public void joinChannelPeer1() throws InvalidArgumentException, ProposalException {
+        Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
+        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
+        service.joinChannel(channelName, orderer, peer0, org1Admin);
     }
 
     public static Test suite() {
@@ -104,7 +69,6 @@ public class ChannelTestCase extends TestCase {
         suite.addTest(new ChannelTestCase("createChannel"));
         suite.addTest(new ChannelTestCase("joinChannelPeer0"));
         suite.addTest(new ChannelTestCase("joinChannelPeer1"));
-        suite.addTest(new ChannelTestCase("viewChannelInformation"));
         return suite;
     }
 }
