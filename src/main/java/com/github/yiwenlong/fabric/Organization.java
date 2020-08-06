@@ -26,24 +26,26 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public class Organization {
 
-    private final String mspId;
-    private final String domain;
-    private final File cryptoConfigDir;
-
+    private final Config config;
     private String tlsCaCertFilePath;
-    private final Map<String, User> name2Users = new HashMap<>();
+    private Map<String, User> name2Users = new HashMap<>();
+    private final Map<String, String> nodeUrls;
 
-    public Organization(String mspId, String domain, File cryptoConfigDir) {
-        this.mspId = mspId;
-        this.domain = domain;
-        this.cryptoConfigDir = cryptoConfigDir;
+    public Organization(Config config) {
+        this.config = config;
+        this.nodeUrls = config.nodeUrls();
+    }
+
+    public String mspId() {
+        return config.mspId();
     }
 
     public Organization init() throws FileNotFoundException {
-        File tlsCaCertFile = new File(cryptoConfigDir, String.format("tlsca/tlsca.%s-cert.pem", domain));
+        File tlsCaCertFile = new File(config.cryptoDirectory(), String.format("tlsca/tlsca.%s-cert.pem", config.domain()));
         if (!tlsCaCertFile.exists()) {
             throw new FileNotFoundException(tlsCaCertFile.getAbsolutePath());
         }
@@ -53,47 +55,56 @@ public class Organization {
     }
 
     private void initUsers() throws FileNotFoundException {
-        File usersDir = new File(cryptoConfigDir, "users");
+        File usersDir = new File(config.cryptoDirectory(), "users");
         if (!usersDir.exists() || !usersDir.isDirectory()) {
             throw new FileNotFoundException(usersDir.getAbsolutePath());
         }
-        for (File f: Objects.requireNonNull(usersDir.listFiles())) {
-            if (!f.getName().contains(domain)) {
-                continue;
+        Stream.of(Objects.requireNonNull(usersDir.listFiles())).forEach(file -> {
+            if (!file.getName().contains(config.domain())) {
+                return;
             }
-            String name = f.getName().split("@" + domain)[0];
-            File keyFile = new File(f, "/msp/keystore/priv_sk");
+            String name = file.getName().split("@" + config.domain())[0];
+            File keyFile = new File(file, "/msp/keystore/priv_sk");
             if (!keyFile.exists()) {
-                throw new FileNotFoundException(keyFile.getAbsolutePath());
+                return;
             }
-            File certFile = new File(f, String.format("/msp/signcerts/%s@%s-cert.pem", name, domain));
+            File certFile = new File(file, String.format("/msp/signcerts/%s@%s-cert.pem", name, config.domain()));
             if (!certFile.exists()) {
-                throw new FileNotFoundException(certFile.getAbsolutePath());
+                return;
             }
-            User user = SimpleFabricUser.createInstance(name, mspId, certFile.getAbsolutePath(), keyFile.getAbsolutePath());
+            User user = SimpleFabricUser.createInstance(name, config.mspId(), certFile.getAbsolutePath(), keyFile.getAbsolutePath());
             if (user != null) {
                 name2Users.put(name, user);
             }
-        }
+        });
     }
 
-    public User getUser(String name) {
+    public User user(String name) {
         return name2Users.get(name);
     }
 
-    public Peer getPeer(HFClient client, String name, String grpcUrl) throws InvalidArgumentException {
+    public Peer peer(HFClient client, String name) throws InvalidArgumentException {
+        String grpcurl = nodeUrls.get(name);
         return new NodeBuilder()
-                .grpcUrl(grpcUrl)
+                .grpcUrl(grpcurl)
                 .name(name)
                 .tlsCaFile(tlsCaCertFilePath)
                 .buildPeer(client);
     }
 
-    public Orderer getOrderer(HFClient client, String name, String grpcUrl) throws InvalidArgumentException {
+    public Orderer orderer(HFClient client, String name) throws InvalidArgumentException {
+        String grpcurl = nodeUrls.get(name);
         return new NodeBuilder()
-                .grpcUrl(grpcUrl)
+                .grpcUrl(grpcurl)
                 .name(name)
                 .tlsCaFile(tlsCaCertFilePath)
                 .buildOrderer(client);
+    }
+
+    public interface Config {
+        String mspId();
+        String domain();
+        String cryptoDirectory();
+        Map<String, String> nodeUrls();
     }
 }
