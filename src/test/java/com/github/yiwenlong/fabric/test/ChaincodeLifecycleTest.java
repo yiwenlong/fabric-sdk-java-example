@@ -42,7 +42,7 @@ public class ChaincodeLifecycleTest {
     }
 
     @Test
-    public void testQueyApproveChaincode() {
+    public void testQueryApproveChaincode() {
         runChaincodeLifecycleTestCase("queryApproveChaincode");
     }
 
