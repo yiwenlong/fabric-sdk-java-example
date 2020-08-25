@@ -43,6 +43,7 @@ public class ChannelTest {
 
     @Test
     public void testViewChannel() {
-        runChannelTestCase("viewChannelInformation");
+        runChannelTestCase("queryPeer0JoinedChannel");
+        runChannelTestCase("queryPeer1JoinedChannel");
     }
 }

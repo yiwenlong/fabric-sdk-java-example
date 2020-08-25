@@ -65,8 +65,18 @@ public class ChannelTestCase extends TestCase {
 
     public void joinChannelPeer1() throws InvalidArgumentException, ProposalException {
         Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
-        Peer peer0 = service.buildPeer(org1, "peer1", org1Admin);
-        service.joinChannel(channelName, orderer, peer0, org1Admin);
+        Peer peer1 = service.buildPeer(org1, "peer1", org1Admin);
+        service.joinChannel(channelName, orderer, peer1, org1Admin);
+    }
+
+    public void queryPeer0JoinedChannel() throws InvalidArgumentException, ProposalException {
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
+        service.queryJoinedChannel(peer0, org1Admin);
+    }
+
+    public void queryPeer1JoinedChannel() throws InvalidArgumentException, ProposalException {
+        Peer peer1 = service.buildPeer(org1, "peer1", org1Admin);
+        service.queryJoinedChannel(peer1, org1Admin);
     }
 
     public static Test suite() {
@@ -74,6 +84,8 @@ public class ChannelTestCase extends TestCase {
         suite.addTest(new ChannelTestCase("createChannel"));
         suite.addTest(new ChannelTestCase("joinChannelPeer0"));
         suite.addTest(new ChannelTestCase("joinChannelPeer1"));
+        suite.addTest(new ChannelTestCase("queryPeer0JoinedChannel"));
+        suite.addTest(new ChannelTestCase("queryPeer1JoinedChannel"));
         return suite;
     }
 }
