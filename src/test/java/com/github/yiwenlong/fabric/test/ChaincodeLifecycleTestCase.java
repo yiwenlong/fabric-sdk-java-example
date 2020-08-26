@@ -56,7 +56,6 @@ public class ChaincodeLifecycleTestCase extends TestCase {
 
     public void installChaincode() throws IOException, InvalidArgumentException, ProposalException {
         String ccPackage = "network/chaincode-tps/tps.tar.gz";
-        Orderer orderer = service.buildOrderer(ordererOrg, "orderer0", org1Admin);
         Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
         service.installChaincode(ccPackage, peer0);
     }
