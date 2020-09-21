@@ -5,7 +5,6 @@ import com.github.yiwenlong.fabric.utils.PropertiesHelper;
 import org.hyperledger.fabric.sdk.Enrollment;
 import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
-import org.hyperledger.fabric_ca.sdk.EnrollmentRequest;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
 import org.junit.Before;
@@ -39,5 +38,12 @@ public class FabricCaClientTest {
     public void testEnrollPeerMsp() throws Exception {
         Enrollment enrollment = client.enroll("peer1", "peer1pw");
         System.out.println(enrollment.getCert());
+    }
+
+    @Test
+    public void testRevokePeerCertificate() throws Exception {
+        Enrollment adminEnrollment = client.enroll("admin", "adminpw");
+        User admin = SimpleFabricUser.createInstance("admin", "Org1MSP", adminEnrollment);
+        client.revoke(admin, "2a38ff7563efefd2fbbef91a29bbbd24f702c15e", "3d2b432126e29c809d6371b9e5a0e8d26d024b4c", "Test from java sdk");
     }
 }
