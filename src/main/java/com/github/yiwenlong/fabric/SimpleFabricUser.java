@@ -66,4 +66,8 @@ public class SimpleFabricUser implements User, Serializable {
             return null;
         }
     }
+
+    public static User createInstance(String userName, String orgMspId, Enrollment enrollment) {
+        return new SimpleFabricUser(userName, orgMspId, enrollment);
+    }
 }
