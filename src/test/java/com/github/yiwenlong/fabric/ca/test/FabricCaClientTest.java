@@ -54,4 +54,12 @@ public class FabricCaClientTest {
         String res = client.revoke(admin, "peer1", "test revoke identity.", true);
         System.out.println(res);
     }
+
+    @Test
+    public void testGenCrl() throws Exception {
+        Enrollment adminEnrollment = client.enroll("admin", "adminpw");
+        User admin = SimpleFabricUser.createInstance("admin", "Org1MSP", adminEnrollment);
+        String crl = client.generateCRL(admin, null, null, null, null);
+        System.out.println(crl);
+    }
 }
