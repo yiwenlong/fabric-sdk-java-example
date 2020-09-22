@@ -44,6 +44,14 @@ public class FabricCaClientTest {
     public void testRevokePeerCertificate() throws Exception {
         Enrollment adminEnrollment = client.enroll("admin", "adminpw");
         User admin = SimpleFabricUser.createInstance("admin", "Org1MSP", adminEnrollment);
-        client.revoke(admin, "2a38ff7563efefd2fbbef91a29bbbd24f702c15e", "3d2b432126e29c809d6371b9e5a0e8d26d024b4c", "Test from java sdk");
+        client.revoke(admin, "25f9ffe1e1b249febde2e86e730e55580671599a", "3ac3fd12c73bacf1c59dd17be8135f0232ce6067", "Test from java sdk");
+    }
+
+    @Test
+    public void testRevokePeerIdentity() throws Exception {
+        Enrollment adminEnrollment = client.enroll("admin", "adminpw");
+        User admin = SimpleFabricUser.createInstance("admin", "Org1MSP", adminEnrollment);
+        String res = client.revoke(admin, "peer1", "test revoke identity.", true);
+        System.out.println(res);
     }
 }
