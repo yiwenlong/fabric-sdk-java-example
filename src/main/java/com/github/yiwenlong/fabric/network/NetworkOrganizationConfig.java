@@ -48,6 +48,7 @@ public enum NetworkOrganizationConfig implements Organization.Config {
             return nodes;
         }
     },
+
     Org1() {
         @Override
         public String mspId() {

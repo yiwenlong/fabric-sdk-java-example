@@ -26,19 +26,5 @@ build/
 
 fabric-sdk-java-example.iml
 
-binaries/
-
-network/*/*/*.log
-network/*/*.log
-
-network/Org1/*/*.sh
-network/Org1/*/peer
-network/Org1/*/data
-
-network/Orderer/*/*.sh
-network/Orderer/*/orderer
-network/Orderer/*/etcdraft
-network/Orderer/*/file-ledger
-
-network/chaincode-tps/*.sh
-network/chaincode-tps/tps
+crypto-config/
+crypto-config.tar.gz

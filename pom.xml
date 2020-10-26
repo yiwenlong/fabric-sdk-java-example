@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <grpc.version>1.23.0</grpc.version><!-- CURRENT_GRPC_VERSION -->
+        <grpc.version>1.17.1</grpc.version><!-- CURRENT_GRPC_VERSION -->
         <protobuf.version>3.10.0</protobuf.version>
         <bouncycastle.version>1.63</bouncycastle.version>
         <httpclient.version>4.5.10</httpclient.version>
@@ -27,14 +27,14 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.1</version>
+            <version>4.13</version>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.hyperledger.fabric-sdk-java/fabric-sdk-java -->
         <dependency>
             <groupId>org.hyperledger.fabric-sdk-java</groupId>
             <artifactId>fabric-sdk-java</artifactId>
-            <version>2.0.0</version>
+            <version>1.4.4</version>
         </dependency>
 
         <dependency>
