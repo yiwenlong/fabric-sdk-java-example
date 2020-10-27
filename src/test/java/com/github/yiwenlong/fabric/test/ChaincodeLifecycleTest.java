@@ -1,11 +1,14 @@
 package com.github.yiwenlong.fabric.test;
 
-import com.github.yiwenlong.fabric.ChaincodeDefinition;
+import com.github.yiwenlong.fabric.ChaincodeInstaller;
+import com.github.yiwenlong.fabric.ChaincodeInstantiate;
 import com.github.yiwenlong.fabric.FabricService;
 import com.github.yiwenlong.fabric.Organization;
 import com.github.yiwenlong.fabric.network.NetworkOrganizationConfig;
+import org.hyperledger.fabric.sdk.Orderer;
 import org.hyperledger.fabric.sdk.Peer;
 import org.hyperledger.fabric.sdk.User;
+import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionException;
@@ -14,18 +17,21 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 public class ChaincodeLifecycleTest {
 
-    private FabricService service = FabricService.service();
+    private final FabricService service = FabricService.service();
 
-    private Organization org1;
-    private User org1Admin;
+    private Organization org1, ordererOrg;
+    private User org1Admin, ordererAdmin;
 
     @Before
     public void init() throws FileNotFoundException {
         org1 = new Organization(NetworkOrganizationConfig.Org1).init();
+        ordererOrg = new Organization(NetworkOrganizationConfig.Orderer).init();
         org1Admin = org1.user("Admin");
+        ordererAdmin = ordererOrg.user("Admin");
     }
 
     @Test
@@ -74,12 +80,12 @@ public class ChaincodeLifecycleTest {
     }
 
     @Test
-    public void installChaincodeTest() throws InvalidArgumentException, ProposalException, FileNotFoundException {
-        ChaincodeDefinition ccDefine = new ChaincodeDefinition()
+    public void installChaincodeTest() throws InvalidArgumentException, ProposalException {
+        ChaincodeInstaller ccDefine = new ChaincodeInstaller()
                 .chaincodeName("test_cc")
-                .version("1.4")
-                .path("certificate")
-                .sourceFile(new File("chaincodes/certificate.tar.gz"));
+                .version("1.3")
+                .path("test")
+                .sourceLocation(new File("chaincodes/test"));
         Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
         service.installChaincode(ccDefine, org1Admin, peer0).forEach(
                 proposalResponse -> System.out.println(
@@ -92,5 +98,26 @@ public class ChaincodeLifecycleTest {
                 chaincodeInfo.getVersion()));
     }
 
-
+    @Test
+    public void instantiateChaincodeTest() throws
+            InvalidArgumentException,
+            TransactionException,
+            ProposalException,
+            ChaincodeEndorsementPolicyParseException,
+            IOException {
+        final String channel = "mychannel";
+        ChaincodeInstantiate instantiate = new ChaincodeInstantiate()
+                .addArg("a-init-argument")
+                .chaincodeName("test_cc")
+                .version("1.3")
+                .yamlPolicy(new File("chaincodes/endorsementpolicy.yaml"));
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
+        Orderer orderer = service.buildOrderer(ordererOrg, "orderer", ordererAdmin);
+        service.instantiateChaincode(instantiate, channel, org1Admin, orderer, peer0).forEach(
+                proposalResponse -> {
+                    System.out.println("Response status: " + proposalResponse.getResponse().getStatus());
+                    System.out.println("Response message: " + proposalResponse.getResponse().getMessage());
+                }
+        );
+    }
 }

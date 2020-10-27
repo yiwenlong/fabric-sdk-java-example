@@ -3,6 +3,7 @@ package com.github.yiwenlong.fabric;
 import org.hyperledger.fabric.protos.peer.FabricProposalResponse;
 import org.hyperledger.fabric.protos.peer.Query;
 import org.hyperledger.fabric.sdk.*;
+import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionException;
@@ -17,7 +18,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class FabricService {
@@ -85,15 +85,26 @@ public class FabricService {
         return ch.queryInstantiatedChaincodes(peer);
     }
 
-    public Collection<FabricProposalResponse.ProposalResponse> installChaincode(ChaincodeDefinition ccDefine, User user, Peer ... peers) throws
+    public Collection<FabricProposalResponse.ProposalResponse> installChaincode(ChaincodeInstaller ccInstaller, User user, Peer ... peers) throws
             InvalidArgumentException,
+            ProposalException {
+        return ccInstaller.install(client, user, peers);
+    }
+
+    public Collection<FabricProposalResponse.ProposalResponse> instantiateChaincode(ChaincodeInstantiate instantiate, String channel, User user, Orderer orderer, Peer ... peers) throws
+            IOException,
+            ChaincodeEndorsementPolicyParseException,
             ProposalException,
-            FileNotFoundException {
-        client.setUserContext(user);
-        return client.sendInstallProposal(ccDefine.toProposalRequest(client), Arrays.asList(peers))
-                .stream()
-                .map(ProposalResponse::getProposalResponse)
-                .collect(Collectors.toList());
+            TransactionException,
+            InvalidArgumentException {
+        Channel mChannel = null;
+        try {
+            mChannel = setUpChannel(channel, orderer, peers);
+            return instantiate.instantiate(client, mChannel, user, peers);
+        } finally {
+            if (mChannel != null && !mChannel.isShutdown())
+                mChannel.shutdown(true);
+        }
     }
 
     public BlockEvent.TransactionEvent invokeChaincode(String channelName, ChaincodeProposal proposal, Orderer orderer, Peer ... peers) throws
