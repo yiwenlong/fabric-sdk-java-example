@@ -11,10 +11,6 @@ public class PropertiesHelper {
         properties.setProperty("negotiationType", "TLS");
         properties.put("pemFile", tlscaFilePath);
 
-        // for client auth tls.
-        // properties.put("clientKeyFile", clientTlsKey);
-        // properties.put("clientCertFile",clientTlsCert);
-
         properties.put("grpc.NettyChannelBuilderOption.keepAliveTime", new Object[] {5L, TimeUnit.MINUTES});
         properties.put("grpc.NettyChannelBuilderOption.keepAliveTimeout", new Object[] {8L, TimeUnit.SECONDS});
         properties.put("grpc.NettyChannelBuilderOption.keepAliveWithoutCalls", new Object[] {true});

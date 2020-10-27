@@ -32,7 +32,7 @@ public class Organization {
 
     private final Config config;
     private String tlsCaCertFilePath;
-    private Map<String, User> name2Users = new HashMap<>();
+    private final Map<String, User> name2Users = new HashMap<>();
     private final Map<String, String> nodeUrls;
 
     public Organization(Config config) {
@@ -64,10 +64,11 @@ public class Organization {
                 return;
             }
             String name = file.getName().split("@" + config.domain())[0];
-            File keyFile = new File(file, "/msp/keystore/priv_sk");
-            if (!keyFile.exists()) {
+            File keyStore = new File(file, "/msp/keystore");
+            if (!keyStore.exists() || !keyStore.isDirectory()) {
                 return;
             }
+            File keyFile = Objects.requireNonNull(keyStore.listFiles())[0];
             File certFile = new File(file, String.format("/msp/signcerts/%s@%s-cert.pem", name, config.domain()));
             if (!certFile.exists()) {
                 return;

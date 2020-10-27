@@ -1,5 +1,6 @@
 package com.github.yiwenlong.fabric;
 
+import org.hyperledger.fabric.protos.peer.Query;
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
@@ -9,11 +10,12 @@ import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import java.io.File;
 import java.io.IOException;
 import java.security.Security;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class FabricService {
 
@@ -48,90 +50,83 @@ public class FabricService {
         return organization.orderer(client, orderer);
     }
 
-//    public void installChaincode(String packageFile, Peer... peers) throws IOException, InvalidArgumentException, ProposalException {
-//        LifecycleInstallChaincodeRequest request = client.newLifecycleInstallChaincodeRequest();
-//        request.setLifecycleChaincodePackage(LifecycleChaincodePackage.fromFile(new File(packageFile)));
-//        Collection<LifecycleInstallChaincodeProposalResponse> responses =
-//                client.sendLifecycleInstallChaincodeRequest(request, Arrays.asList(peers));
-//        for (LifecycleInstallChaincodeProposalResponse response: responses) {
-//            System.out.println("status: " + response.getStatus().name());
-//            System.out.println("txid: " + response.getTransactionID());
-//            System.out.println("message" + response.getMessage());
-//            System.out.println("Package Id: " + response.getPackageId());
-//        }
-//    }
-
     public Channel setUpChannel(String channelName, Orderer orderer, Peer ... peers) throws InvalidArgumentException, TransactionException {
-        Channel mychannel = client.newChannel(channelName);
-        mychannel.addOrderer(orderer);
+        Channel mChannel = client.newChannel(channelName);
+        if (orderer != null)
+            mChannel.addOrderer(orderer);
         Arrays.stream(peers).iterator().forEachRemaining( peer -> {
             try {
-                mychannel.addPeer(peer);
+                mChannel.addPeer(peer);
             } catch (InvalidArgumentException e) {
                 e.printStackTrace();
             }
         });
-        return mychannel.initialize();
+        return mChannel.initialize();
     }
 
-    public void invokeTps(String channelName, ChaincodeProposal proposal, Orderer orderer, Peer ... peers)
-            throws InvalidArgumentException, ProposalException, ExecutionException,
-            InterruptedException, TransactionException {
-        TransactionProposalRequest proposalRequest = client.newTransactionProposalRequest();
-        proposalRequest.setArgs(proposal.args).setFcn(proposal.funcName);
-        proposalRequest.setChaincodeName(proposal.chaincodeName);
+    public List<Query.ChaincodeInfo> queryInstalledChaincodes(Peer peer, User user) throws InvalidArgumentException, ProposalException {
+        client.setUserContext(user);
+        return client.queryInstalledChaincodes(peer);
+    }
 
-        Channel mychannel = null;
+    public List<Query.ChaincodeInfo> queryInstantiatedChaincodes(Peer peer, String channel, User user) throws InvalidArgumentException, ProposalException, TransactionException {
+        client.setUserContext(user);
+        Channel ch = client.getChannel(channel);
+        if (ch == null) {
+            ch = client.newChannel(channel)
+                    .addPeer(peer)
+                    .initialize();
+        } else if (!ch.getPeers().contains(peer)) {
+            ch.addPeer(peer);
+        }
+        return ch.queryInstantiatedChaincodes(peer);
+    }
+
+    public BlockEvent.TransactionEvent invokeChaincode(String channelName, ChaincodeProposal proposal, Orderer orderer, Peer ... peers) throws
+            InvalidArgumentException,
+            ProposalException,
+            ExecutionException,
+            InterruptedException,
+            TransactionException {
+
+        Channel mChannel = null;
         try {
-            mychannel = setUpChannel(channelName, orderer, peers);
-            Collection<ProposalResponse> rs = mychannel.sendTransactionProposal(proposalRequest, Arrays.asList(peers));
-            Collection<ProposalResponse> toSend = new ArrayList<>();
-            rs.forEach(response -> {
-                if (response.isVerified()) {
-                    toSend.add(response);
-                    System.out.printf("%s proposal result: %s\n", response.getPeer().toString(), response.isVerified());
-                } else {
-                    System.out.printf("%s error message: %s\n", response.getPeer().toString(), response.getMessage());
-                }
-            });
-            if (toSend.size() > 0) {
-                CompletableFuture<BlockEvent.TransactionEvent> txFuture = mychannel.sendTransaction(toSend);
-                BlockEvent.TransactionEvent txEvent = txFuture.get();
-                assert txEvent.isValid();
+            mChannel = setUpChannel(channelName, orderer, peers);
+            Collection<ProposalResponse> simulationRs = simulationExec(mChannel, proposal, peers);
+            if (simulationRs.size() == 0) {
+                throw new ProposalException("Simulation res list is empty.");
             }
+            return mChannel.sendTransaction(simulationRs).get();
         } finally {
-            assert mychannel != null;
-            mychannel.shutdown(true);
+            if (mChannel != null && !mChannel.isShutdown())
+                mChannel.shutdown(true);
         }
     }
 
-    public void queryChaincode(String channelName, ChaincodeProposal proposal, Orderer orderer, Peer ... peers)
+    public ProposalResponse queryChaincode(String channelName, ChaincodeProposal proposal, Peer ... peers)
             throws TransactionException, InvalidArgumentException, ProposalException {
-        TransactionProposalRequest proposalRequest = client.newTransactionProposalRequest();
-        proposalRequest.setArgs(proposal.args).setFcn(proposal.funcName);
-        proposalRequest.setChaincodeName(proposal.chaincodeName);
 
-        Channel mychannel = null;
+        Channel mChannel = null;
         try {
-            mychannel = setUpChannel(channelName, orderer, peers);
-            Collection<ProposalResponse> rs = mychannel.sendTransactionProposal(proposalRequest, Arrays.asList(peers));
-            rs.forEach(response -> {
-                try {
-                    if (response.isInvalid()) {
-                        System.out.println(response.getMessage());
-                        return;
-                    }
-                    System.out.printf("%s proposal result: %s\n",
-                            response.getPeer().toString(),
-                            new String(response.getChaincodeActionResponsePayload()));
-                } catch (InvalidArgumentException e) {
-                    e.printStackTrace();
-                }
-            });
+            mChannel = setUpChannel(channelName, null, peers);
+            Collection<ProposalResponse> simulationRs = simulationExec(mChannel, proposal, peers);
+            if (simulationRs.size() == 0) {
+                throw new ProposalException("Simulation res list is empty.");
+            }
+            return simulationRs.iterator().next();
         } finally {
-            assert mychannel != null;
-            mychannel.shutdown(true);
+            assert mChannel != null;
+            mChannel.shutdown(true);
         }
+    }
+
+    protected Collection<ProposalResponse> simulationExec(Channel channel, ChaincodeProposal proposal, Peer ... peers) throws
+            InvalidArgumentException,
+            ProposalException {
+        TransactionProposalRequest request = proposal.toProposalRequest(client);
+        Collection<ProposalResponse> rs = channel.sendTransactionProposal(request, Arrays.asList(peers));
+        return rs.stream().filter(ProposalResponse::isVerified)
+                .collect(Collectors.toList());
     }
 
     public void joinChannel(String channelName, Orderer orderer, Peer peer, User user) throws InvalidArgumentException, ProposalException {
@@ -145,12 +140,9 @@ public class FabricService {
         }
     }
 
-    public void queryJoinedChannel(Peer peer, User user) throws InvalidArgumentException, ProposalException {
+    public Set<String> queryJoinedChannels(Peer peer, User user) throws InvalidArgumentException, ProposalException {
         client.setUserContext(user);
-        System.out.println(peer.toString());
-        client.queryChannels(peer).forEach(channel ->
-                System.out.printf("\t%s\n", channel)
-        );
+        return client.queryChannels(peer);
     }
 
     public void createChannel(String channelName, String txfile, Orderer orderer, User admin)
@@ -179,124 +171,4 @@ public class FabricService {
         }
     }
 
-//    public void approveChaincodeDefinition(String channelName, ChaincodeDefinition definition, Orderer orderer, Peer ... peers)
-//            throws TransactionException, InvalidArgumentException, ProposalException {
-//        Channel channel = setUpChannel(channelName, orderer, peers);
-//
-//        LifecycleApproveChaincodeDefinitionForMyOrgRequest request = client.newLifecycleApproveChaincodeDefinitionForMyOrgRequest();
-//        request.setChaincodeName(definition.chaincodeName);
-//        request.setInitRequired(definition.init);
-//        request.setSequence(definition.sequence);
-//        request.setChaincodeVersion(definition.version);
-//        request.setPackageId(definition.packageId);
-//
-//        try {
-//            Collection<LifecycleApproveChaincodeDefinitionForMyOrgProposalResponse> response =
-//                    channel.sendLifecycleApproveChaincodeDefinitionForMyOrgProposal(request, Arrays.asList(peers));
-//            CompletableFuture<BlockEvent.TransactionEvent> txFuture = channel.sendTransaction(response);
-//            BlockEvent.TransactionEvent txEvent;
-//            try {
-//                txEvent = txFuture.get();
-//                assert txEvent.isValid();
-//            } catch (InterruptedException | ExecutionException e) {
-//                e.printStackTrace();
-//            }
-//        } finally {
-//            channel.shutdown(true);
-//        }
-//    }
-
-//    public void commitChaincodeDefinition(String channelName, ChaincodeDefinition definition, Orderer orderer, Peer ... peers)
-//            throws InvalidArgumentException, TransactionException, ExecutionException,
-//            InterruptedException, ProposalException {
-//
-//        LifecycleCommitChaincodeDefinitionRequest request = client.newLifecycleCommitChaincodeDefinitionRequest();
-//        request.setChaincodeName(definition.chaincodeName);
-//        request.setSequence(definition.sequence);
-//        request.setChaincodeVersion(definition.version);
-//        request.setInitRequired(definition.init);
-//
-//
-//        Channel mychannel = null;
-//        try {
-//            mychannel = setUpChannel(channelName, orderer, peers);
-//            Collection<LifecycleCommitChaincodeDefinitionProposalResponse> rs =
-//                    mychannel.sendLifecycleCommitChaincodeDefinitionProposal(request, Arrays.asList(peers));
-//            rs.forEach(response -> {
-//                System.out.printf("%s proposal result:\n \t%s\n", response.getPeer().toString(), response.getMessage());
-//                assert response.isVerified();
-//            });
-//
-//            CompletableFuture<BlockEvent.TransactionEvent> txFuture = mychannel.sendTransaction(rs);
-//            BlockEvent.TransactionEvent txEvent = txFuture.get();
-//            assert txEvent.isValid();
-//        } finally {
-//            assert mychannel != null;
-//            mychannel.shutdown(true);
-//        }
-//    }
-//
-//    public void queryChaincodeApprove(String channelName, ChaincodeDefinition definition, Orderer orderer, Peer ... peers)
-//            throws TransactionException, InvalidArgumentException, ProposalException {
-//        Channel channel = setUpChannel(channelName, orderer, peers);
-//
-//        LifecycleCheckCommitReadinessRequest request = client.newLifecycleSimulateCommitChaincodeDefinitionRequest();
-//        request.setChaincodeName(definition.chaincodeName);
-//        request.setInitRequired(definition.init);
-//        request.setSequence(definition.sequence);
-//        request.setChaincodeVersion(definition.version);
-//        try {
-//            Collection<LifecycleCheckCommitReadinessProposalResponse> responses =
-//                    channel.sendLifecycleCheckCommitReadinessRequest(request, Arrays.asList(peers));
-//            responses.forEach(response -> {
-//                try {
-//                    Map<String, Boolean> approvalsMap = response.getApprovalsMap();
-//                    approvalsMap.forEach((o, isProval) -> System.out.printf("Org: %s, %s\n", o, isProval));
-//                } catch (ProposalException e) {
-//                    e.printStackTrace();
-//                }
-//            });
-//        } finally {
-//            channel.shutdown(true);
-//        }
-//    }
-
-//    public void queryDefinedChaincode(String channel, Orderer orderer, Peer ... peers)
-//            throws TransactionException, InvalidArgumentException, ProposalException {
-//        Channel mychannel = setUpChannel(channel, orderer, peers);
-//        LifecycleQueryChaincodeDefinitionsRequest request = client.newLifecycleQueryChaincodeDefinitionsRequest();
-//        try {
-//            Collection<LifecycleQueryChaincodeDefinitionsProposalResponse> reponses =
-//                    mychannel.lifecycleQueryChaincodeDefinitions(request, Arrays.asList(peers));
-//            reponses.forEach(response -> {
-//                try {
-//                    response.getLifecycleQueryChaincodeDefinitionsResult().iterator().forEachRemaining(result ->
-//                            System.out.printf("name: %s, version: %s, sequence: %d, escc: %s\n",
-//                                    result.getName(), result.getVersion(), result.getSequence(), result.getEndorsementPlugin())
-//                    );
-//                } catch (ProposalException e) {
-//                    e.printStackTrace();
-//                }
-//            });
-//        } finally {
-//            mychannel.shutdown(true);
-//        }
-//    }
-
-//    public void queryInstalledChaincode(Peer ... peers) throws ProposalException, InvalidArgumentException {
-//        LifecycleQueryInstalledChaincodesRequest queryRequest = client.newLifecycleQueryInstalledChaincodesRequest();
-//        Collection<LifecycleQueryInstalledChaincodesProposalResponse> responses =
-//                client.sendLifecycleQueryInstalledChaincodes(queryRequest, Arrays.asList(peers));
-//        responses.forEach( response -> {
-//            try {
-//                Collection<LifecycleQueryInstalledChaincodesProposalResponse.LifecycleQueryInstalledChaincodesResult> ress =
-//                        response.getLifecycleQueryInstalledChaincodesResult();
-//                ress.forEach(res ->
-//                        System.out.printf("%s:\n\tlabel: %s, packageId: %s\n",response.getPeer().toString(), res.getLabel(), res.getPackageId())
-//                );
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        });
-//    }
 }
