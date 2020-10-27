@@ -78,6 +78,7 @@ public class ChaincodeLifecycleTest {
         ChaincodeDefinition ccDefine = new ChaincodeDefinition()
                 .chaincodeName("test_cc")
                 .version("1.4")
+                .path("certificate")
                 .sourceFile(new File("chaincodes/certificate.tar.gz"));
         Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
         service.installChaincode(ccDefine, org1Admin, peer0).forEach(
