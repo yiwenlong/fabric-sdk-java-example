@@ -1,13 +1,8 @@
 package com.github.yiwenlong.fabric.test;
 
-import com.github.yiwenlong.fabric.ChaincodeInstaller;
-import com.github.yiwenlong.fabric.ChaincodeInstantiate;
-import com.github.yiwenlong.fabric.FabricService;
-import com.github.yiwenlong.fabric.Organization;
+import com.github.yiwenlong.fabric.*;
 import com.github.yiwenlong.fabric.network.NetworkOrganizationConfig;
-import org.hyperledger.fabric.sdk.Orderer;
-import org.hyperledger.fabric.sdk.Peer;
-import org.hyperledger.fabric.sdk.User;
+import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
@@ -18,6 +13,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 public class ChaincodeLifecycleTest {
 
@@ -67,16 +63,6 @@ public class ChaincodeLifecycleTest {
                     chaincodeInfo.isInitialized()
                 )
         );
-
-        System.out.println("\nShow instantiated chaincode for mychannel of peer1:");
-        Peer peer1 = service.buildPeer(org1, "peer1", org1Admin);
-        service.queryInstantiatedChaincodes(peer1, mychannel, org1Admin).forEach(chaincodeInfo ->
-                System.out.printf("\tName: %s, Version: %s, isInitialized: %s\n",
-                    chaincodeInfo.getName(),
-                    chaincodeInfo.getVersion(),
-                    chaincodeInfo.isInitialized()
-                )
-        );
     }
 
     @Test
@@ -104,7 +90,7 @@ public class ChaincodeLifecycleTest {
             TransactionException,
             ProposalException,
             ChaincodeEndorsementPolicyParseException,
-            IOException {
+            IOException, ExecutionException, InterruptedException {
         final String channel = "mychannel";
         ChaincodeInstantiate instantiate = new ChaincodeInstantiate()
                 .addArg("a-init-argument")
@@ -113,11 +99,34 @@ public class ChaincodeLifecycleTest {
                 .yamlPolicy(new File("chaincodes/endorsementpolicy.yaml"));
         Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
         Orderer orderer = service.buildOrderer(ordererOrg, "orderer", ordererAdmin);
-        service.instantiateChaincode(instantiate, channel, org1Admin, orderer, peer0).forEach(
-                proposalResponse -> {
-                    System.out.println("Response status: " + proposalResponse.getResponse().getStatus());
-                    System.out.println("Response message: " + proposalResponse.getResponse().getMessage());
-                }
-        );
+        BlockEvent.TransactionEvent event = service.instantiateChaincode(instantiate, channel, org1Admin, orderer, peer0);
+        System.out.println(event.toString());
+    }
+
+    @Test
+    public void invokeChaincodeTest() throws InvalidArgumentException, InterruptedException, ExecutionException, TransactionException, ProposalException {
+        ChaincodeProposal proposal = new ChaincodeProposal()
+                .chaincodeName("test_cc")
+                .version("1.3")
+                .funcName("put")
+                .args("a-key", "a-value");
+        final String channel = "mychannel";
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
+        Orderer orderer = service.buildOrderer(ordererOrg, "orderer", ordererAdmin);
+        BlockEvent.TransactionEvent event = service.invokeChaincode(channel, org1Admin, proposal, orderer, peer0);
+        System.out.println(event.toString());
+    }
+
+    @Test
+    public void queryChaincodeTest() throws InvalidArgumentException, ProposalException, TransactionException {
+        ChaincodeProposal proposal = new ChaincodeProposal()
+                .chaincodeName("test_cc")
+                .version("1.3")
+                .funcName("get")
+                .args("a-key");
+        final String channel = "mychannel";
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
+        ProposalResponse response = service.queryChaincode(channel, org1Admin, proposal, peer0);
+        System.out.println(response.getProposalResponse().getResponse().getPayload().toStringUtf8());
     }
 }

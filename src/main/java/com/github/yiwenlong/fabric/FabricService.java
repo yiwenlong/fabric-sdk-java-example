@@ -10,7 +10,6 @@ import org.hyperledger.fabric.sdk.exception.TransactionException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.Security;
 import java.util.Arrays;
@@ -91,11 +90,13 @@ public class FabricService {
         return ccInstaller.install(client, user, peers);
     }
 
-    public Collection<FabricProposalResponse.ProposalResponse> instantiateChaincode(ChaincodeInstantiate instantiate, String channel, User user, Orderer orderer, Peer ... peers) throws
+    public BlockEvent.TransactionEvent instantiateChaincode(ChaincodeInstantiate instantiate, String channel, User user, Orderer orderer, Peer ... peers) throws
             IOException,
             ChaincodeEndorsementPolicyParseException,
             ProposalException,
             TransactionException,
+            ExecutionException,
+            InterruptedException,
             InvalidArgumentException {
         Channel mChannel = null;
         try {
@@ -107,19 +108,19 @@ public class FabricService {
         }
     }
 
-    public BlockEvent.TransactionEvent invokeChaincode(String channelName, ChaincodeProposal proposal, Orderer orderer, Peer ... peers) throws
+    public BlockEvent.TransactionEvent invokeChaincode(String channelName, User user, ChaincodeProposal proposal, Orderer orderer, Peer ... peers) throws
             InvalidArgumentException,
             ProposalException,
             ExecutionException,
             InterruptedException,
             TransactionException {
-
+        client.setUserContext(user);
         Channel mChannel = null;
         try {
             mChannel = setUpChannel(channelName, orderer, peers);
-            Collection<ProposalResponse> simulationRs = simulationExec(mChannel, proposal, peers);
+            Collection<ProposalResponse> simulationRs = proposal.simulationExec(client, mChannel, peers);
             if (simulationRs.size() == 0) {
-                throw new ProposalException("Simulation res list is empty.");
+                throw new ProposalException("Simulation result list is empty.");
             }
             return mChannel.sendTransaction(simulationRs).get();
         } finally {
@@ -128,13 +129,13 @@ public class FabricService {
         }
     }
 
-    public ProposalResponse queryChaincode(String channelName, ChaincodeProposal proposal, Peer ... peers)
+    public ProposalResponse queryChaincode(String channelName, User user, ChaincodeProposal proposal, Peer ... peers)
             throws TransactionException, InvalidArgumentException, ProposalException {
-
+        client.setUserContext(user);
         Channel mChannel = null;
         try {
             mChannel = setUpChannel(channelName, null, peers);
-            Collection<ProposalResponse> simulationRs = simulationExec(mChannel, proposal, peers);
+            Collection<ProposalResponse> simulationRs = proposal.simulationExec(client, mChannel, peers);
             if (simulationRs.size() == 0) {
                 throw new ProposalException("Simulation res list is empty.");
             }
@@ -145,14 +146,6 @@ public class FabricService {
         }
     }
 
-    protected Collection<ProposalResponse> simulationExec(Channel channel, ChaincodeProposal proposal, Peer ... peers) throws
-            InvalidArgumentException,
-            ProposalException {
-        TransactionProposalRequest request = proposal.toProposalRequest(client);
-        Collection<ProposalResponse> rs = channel.sendTransactionProposal(request, Arrays.asList(peers));
-        return rs.stream().filter(ProposalResponse::isVerified)
-                .collect(Collectors.toList());
-    }
 
     public void joinChannel(String channelName, Orderer orderer, Peer peer, User user) throws InvalidArgumentException, ProposalException {
         Channel channel = client.newChannel(channelName);

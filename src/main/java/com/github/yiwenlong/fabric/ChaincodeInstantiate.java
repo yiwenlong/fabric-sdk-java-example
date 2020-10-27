@@ -8,10 +8,12 @@ import org.hyperledger.fabric.sdk.exception.ProposalException;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ProtocolException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class ChaincodeInstantiate {
@@ -59,15 +61,21 @@ public class ChaincodeInstantiate {
         return request;
     }
 
-    public Collection<FabricProposalResponse.ProposalResponse> instantiate(HFClient client, Channel channel, User user, Peer... peers) throws
+    public BlockEvent.TransactionEvent instantiate(HFClient client, Channel channel, User user, Peer... peers) throws
             IOException,
             ChaincodeEndorsementPolicyParseException,
             ProposalException,
-            InvalidArgumentException {
+            InvalidArgumentException,
+            ExecutionException,
+            InterruptedException {
         client.setUserContext(user);
-        return channel.sendInstantiationProposal(request(client), Arrays.asList(peers))
+        Collection<ProposalResponse> verifiedResponse =  channel.sendInstantiationProposal(request(client), Arrays.asList(peers))
                 .stream()
-                .map(ProposalResponse::getProposalResponse)
+                .filter(ProposalResponse::isVerified)
                 .collect(Collectors.toList());
+        if (verifiedResponse.size() == 0) {
+            throw new ProtocolException("verified response size = 0");
+        }
+        return channel.sendTransaction(verifiedResponse).get();
     }
 }
