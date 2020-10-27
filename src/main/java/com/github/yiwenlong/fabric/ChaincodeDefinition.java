@@ -1,19 +1,27 @@
 package com.github.yiwenlong.fabric;
 
+import org.hyperledger.fabric.sdk.HFClient;
+import org.hyperledger.fabric.sdk.InstallProposalRequest;
+import org.hyperledger.fabric.sdk.TransactionRequest;
+import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
 public class ChaincodeDefinition {
     String chaincodeName;
-    String packageId;
     String version;
-    int sequence;
-    boolean init;
+    File sourceFile;
+    final TransactionRequest.Type language = TransactionRequest.Type.GO_LANG;
 
     public ChaincodeDefinition chaincodeName(String name) {
         this.chaincodeName = name;
         return this;
     }
 
-    public ChaincodeDefinition packageId(String packageId) {
-        this.packageId = packageId;
+    public ChaincodeDefinition sourceFile(File sourceFile) {
+        this.sourceFile = sourceFile;
         return this;
     }
 
@@ -22,13 +30,13 @@ public class ChaincodeDefinition {
         return this;
     }
 
-    public ChaincodeDefinition sequence(int sequence) {
-        this.sequence = sequence;
-        return this;
-    }
-
-    public ChaincodeDefinition init(boolean init) {
-        this.init = init;
-        return this;
+    public InstallProposalRequest toProposalRequest(HFClient client) throws InvalidArgumentException, FileNotFoundException {
+        InstallProposalRequest request = client.newInstallProposalRequest();
+        request.setChaincodeName(chaincodeName);
+        request.setChaincodeVersion(version);
+        request.setChaincodeLanguage(language);
+        request.setChaincodeInputStream(new FileInputStream(sourceFile));
+        request.setChaincodePath("certificate");
+        return request;
     }
 }

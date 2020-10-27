@@ -1,5 +1,6 @@
 package com.github.yiwenlong.fabric.test;
 
+import com.github.yiwenlong.fabric.ChaincodeDefinition;
 import com.github.yiwenlong.fabric.FabricService;
 import com.github.yiwenlong.fabric.Organization;
 import com.github.yiwenlong.fabric.network.NetworkOrganizationConfig;
@@ -11,6 +12,7 @@ import org.hyperledger.fabric.sdk.exception.TransactionException;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 
 public class ChaincodeLifecycleTest {
@@ -69,6 +71,24 @@ public class ChaincodeLifecycleTest {
                     chaincodeInfo.isInitialized()
                 )
         );
+    }
+
+    @Test
+    public void installChaincodeTest() throws InvalidArgumentException, ProposalException, FileNotFoundException {
+        ChaincodeDefinition ccDefine = new ChaincodeDefinition()
+                .chaincodeName("test_cc")
+                .version("1.4")
+                .sourceFile(new File("chaincodes/certificate.tar.gz"));
+        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
+        service.installChaincode(ccDefine, org1Admin, peer0).forEach(
+                proposalResponse -> System.out.println(
+                        "Response status: " +
+                        proposalResponse.getResponse().getStatus())
+        );
+        System.out.println("Show installed chaincode for peer0:");
+        service.queryInstalledChaincodes(peer0, org1Admin).forEach(chaincodeInfo -> System.out.printf("\tName: %s, Version: %s\n",
+                chaincodeInfo.getName(),
+                chaincodeInfo.getVersion()));
     }
 
 

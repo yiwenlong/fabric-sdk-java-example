@@ -1,5 +1,6 @@
 package com.github.yiwenlong.fabric;
 
+import org.hyperledger.fabric.protos.peer.FabricProposalResponse;
 import org.hyperledger.fabric.protos.peer.Query;
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
@@ -8,6 +9,7 @@ import org.hyperledger.fabric.sdk.exception.TransactionException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.Security;
 import java.util.Arrays;
@@ -15,6 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class FabricService {
@@ -80,6 +83,17 @@ public class FabricService {
             ch.addPeer(peer);
         }
         return ch.queryInstantiatedChaincodes(peer);
+    }
+
+    public Collection<FabricProposalResponse.ProposalResponse> installChaincode(ChaincodeDefinition ccDefine, User user, Peer ... peers) throws
+            InvalidArgumentException,
+            ProposalException,
+            FileNotFoundException {
+        client.setUserContext(user);
+        return client.sendInstallProposal(ccDefine.toProposalRequest(client), Arrays.asList(peers))
+                .stream()
+                .map(ProposalResponse::getProposalResponse)
+                .collect(Collectors.toList());
     }
 
     public BlockEvent.TransactionEvent invokeChaincode(String channelName, ChaincodeProposal proposal, Orderer orderer, Peer ... peers) throws
