@@ -31,18 +31,18 @@ public enum NetworkOrganizationConfig implements Organization.Config {
 
         @Override
         public String domain() {
-            return "example.fnodocker.icu";
+            return "example.com";
         }
 
         @Override
         public String cryptoDirectory() {
-            return ordererCryptoPeerPath("Orderer");
+            return ordererCryptoPeerPath();
         }
 
         @Override
         public Map<String, String> nodeUrls() {
             Map<String, String> nodes = new HashMap<>();
-            nodes.put("orderer0", nodeUrl("orderer0", 7050));
+            nodes.put("orderer", nodeUrl("orderer", 7050));
             nodes.put("orderer1", nodeUrl("orderer1", 8050));
             nodes.put("orderer2", nodeUrl("orderer2", 9050));
             return nodes;
@@ -57,12 +57,12 @@ public enum NetworkOrganizationConfig implements Organization.Config {
 
         @Override
         public String domain() {
-            return "org1.example.fnodocker.icu";
+            return "org1.example.com";
         }
 
         @Override
         public String cryptoDirectory() {
-            return peerCryptoPeerPath("Org1");
+            return peerCryptoPeerPath();
         }
 
         @Override
@@ -74,17 +74,16 @@ public enum NetworkOrganizationConfig implements Organization.Config {
         }
     };
 
-    protected String peerCryptoPeerPath(String orgname) {
-        return String.format("%s/%s/crypto-config/peerOrganizations/%s/", BaseSampleDir, orgname, domain());
+    protected String peerCryptoPeerPath() {
+        return String.format("crypto-config/peerOrganizations/%s/", domain());
     }
 
-    protected String ordererCryptoPeerPath(String orgname) {
-        return String.format("%s/%s/crypto-config/ordererOrganizations/%s/", BaseSampleDir, orgname, domain());
+    protected String ordererCryptoPeerPath() {
+        return String.format("crypto-config/ordererOrganizations/%s/", domain());
     }
 
     protected String nodeUrl(String name, int port) {
         return String.format("grpcs://%s.%s:%d", name, domain(), port);
     }
 
-    private static final String BaseSampleDir = "network";
 }
