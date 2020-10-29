@@ -1,0 +1,7 @@
+
+identities:
+  org1: {"role": {"name": "peer", "mspId": "Org1MSP"}}
+
+policy:
+  1-of:
+    - signed-by: "org1"

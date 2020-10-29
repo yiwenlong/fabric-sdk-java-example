@@ -1,6 +1,5 @@
 package com.github.yiwenlong.fabric;
 
-import org.hyperledger.fabric.protos.peer.FabricProposalResponse;
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
