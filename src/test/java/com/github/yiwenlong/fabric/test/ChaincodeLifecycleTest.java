@@ -69,7 +69,7 @@ public class ChaincodeLifecycleTest {
     public void installChaincodeTest() throws InvalidArgumentException, ProposalException {
         ChaincodeInstaller ccDefine = new ChaincodeInstaller()
                 .chaincodeName("test_cc")
-                .version("1.3")
+                .version("1.0")
                 .path("test")
                 .sourceLocation(new File("chaincodes/test"));
         Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
@@ -93,9 +93,12 @@ public class ChaincodeLifecycleTest {
             IOException, ExecutionException, InterruptedException {
         final String channel = "mychannel";
         ChaincodeInstantiate instantiate = new ChaincodeInstantiate()
-                .addArg("a-init-argument")
+                .addArg("a")
+                .addArg("100")
+                .addArg("b")
+                .addArg("200")
                 .chaincodeName("test_cc")
-                .version("1.3")
+                .version("1.0")
                 .yamlPolicy(new File("chaincodes/endorsementpolicy.yaml"));
         Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
         Orderer orderer = service.buildOrderer(ordererOrg, "orderer", ordererAdmin);
@@ -120,13 +123,16 @@ public class ChaincodeLifecycleTest {
     @Test
     public void queryChaincodeTest() throws InvalidArgumentException, ProposalException, TransactionException {
         ChaincodeProposal proposal = new ChaincodeProposal()
-                .chaincodeName("test_cc")
-                .version("1.3")
-                .funcName("get")
-                .args("a-key");
-        final String channel = "mychannel";
-        Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
-        ProposalResponse response = service.queryChaincode(channel, org1Admin, proposal, peer0);
-        System.out.println(response.getProposalResponse().getResponse().getPayload().toStringUtf8());
+                .chaincodeName("CertManager9")
+                .version("1.0")
+                .funcName("list")
+                .args("{\"status\": -1}");
+        final String channel = "privatechannelorg1msp";
+        Peer peer1 = service.buildPeer(org1, "peer1", org1Admin);
+        ProposalResponse response = service.queryChaincode(channel, org1Admin, proposal, peer1);
+        System.out.printf("Error code: %s, message: %s\n", response.getStatus(), response.getMessage());
+        if (response.getStatus() == ChaincodeResponse.Status.SUCCESS) {
+            System.out.println(response.getProposalResponse().getResponse().getPayload().toStringUtf8());
+        }
     }
 }

@@ -31,7 +31,7 @@ public enum NetworkOrganizationConfig implements Organization.Config {
 
         @Override
         public String domain() {
-            return "example.com";
+            return "example.fnodocker.icu";
         }
 
         @Override
@@ -42,7 +42,7 @@ public enum NetworkOrganizationConfig implements Organization.Config {
         @Override
         public Map<String, String> nodeUrls() {
             Map<String, String> nodes = new HashMap<>();
-            nodes.put("orderer", nodeUrl("orderer", 7050));
+            nodes.put("orderer", nodeUrl("orderer0", 7050));
             nodes.put("orderer1", nodeUrl("orderer1", 8050));
             nodes.put("orderer2", nodeUrl("orderer2", 9050));
             return nodes;
@@ -57,7 +57,7 @@ public enum NetworkOrganizationConfig implements Organization.Config {
 
         @Override
         public String domain() {
-            return "org1.example.com";
+            return "org1.example.fnodocker.icu";
         }
 
         @Override

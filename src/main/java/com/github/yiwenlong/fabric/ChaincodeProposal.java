@@ -6,7 +6,6 @@ import org.hyperledger.fabric.sdk.exception.ProposalException;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 public class ChaincodeProposal {
     String chaincodeName;
@@ -35,10 +34,14 @@ public class ChaincodeProposal {
     }
 
     protected TransactionProposalRequest request(HFClient client) {
-        ChaincodeID ccid = ChaincodeID.newBuilder().setName(chaincodeName).setVersion(version).build();
+        ChaincodeID ccid = ChaincodeID.newBuilder()
+                .setName(chaincodeName)
+                .setVersion(version)
+                .build();
         TransactionProposalRequest request =  (TransactionProposalRequest) client.newTransactionProposalRequest()
-                                                    .setFcn(funcName)
-                                                    .setArgs(args);
+                                                    .setFcn(funcName);
+        if (args != null)
+            request.setArgs(args);
         request.setChaincodeID(ccid);
         return request;
     }
