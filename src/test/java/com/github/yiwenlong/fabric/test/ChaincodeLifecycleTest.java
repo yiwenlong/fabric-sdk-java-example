@@ -110,9 +110,9 @@ public class ChaincodeLifecycleTest {
     public void invokeChaincodeTest() throws InvalidArgumentException, InterruptedException, ExecutionException, TransactionException, ProposalException {
         ChaincodeProposal proposal = new ChaincodeProposal()
                 .chaincodeName("test_cc")
-                .version("1.3")
-                .funcName("put")
-                .args("a-key", "a-value");
+                .version("1.0")
+                .funcName("invoke")
+                .args("a", "b", "1");
         final String channel = "mychannel";
         Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
         Orderer orderer = service.buildOrderer(ordererOrg, "orderer", ordererAdmin);
@@ -123,11 +123,11 @@ public class ChaincodeLifecycleTest {
     @Test
     public void queryChaincodeTest() throws InvalidArgumentException, ProposalException, TransactionException {
         ChaincodeProposal proposal = new ChaincodeProposal()
-                .chaincodeName("CertManager9")
+                .chaincodeName("test_cc")
                 .version("1.0")
-                .funcName("list")
-                .args("{\"status\": -1}");
-        final String channel = "privatechannelorg1msp";
+                .funcName("query")
+                .args("b");
+        final String channel = "mychannel";
         Peer peer1 = service.buildPeer(org1, "peer1", org1Admin);
         ProposalResponse response = service.queryChaincode(channel, org1Admin, proposal, peer1);
         System.out.printf("Error code: %s, message: %s\n", response.getStatus(), response.getMessage());
