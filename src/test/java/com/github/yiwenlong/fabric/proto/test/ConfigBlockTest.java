@@ -14,7 +14,7 @@ public class ConfigBlockTest {
 
     @Test
     public void testDecodeOrdererGenesisBlock() throws IOException {
-        byte[] blockBytes = FileUtils.toByteArray("/Users/yiwenlong/Code/golang/src/github.com/yiwenlong/fabric-samples-nodocker/samples/network-single-org/Orderer/orderer0/genesis.block");
+        byte[] blockBytes = FileUtils.toByteArray("genesis.block");
         Common.Block block = Common.Block.parseFrom(blockBytes);
         List<ByteString> dataList = block.getData().getDataList();
         for (ByteString bytes : dataList) {
