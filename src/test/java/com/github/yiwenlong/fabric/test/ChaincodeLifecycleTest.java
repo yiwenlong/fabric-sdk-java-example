@@ -68,7 +68,7 @@ public class ChaincodeLifecycleTest {
     @Test
     public void installChaincodeTest() throws InvalidArgumentException, ProposalException {
         ChaincodeInstaller ccDefine = new ChaincodeInstaller()
-                .chaincodeName("test_cc")
+                .chaincodeName("test_cc2")
                 .version("1.0")
                 .path("test")
                 .sourceLocation(new File("chaincodes/test"));
@@ -94,10 +94,10 @@ public class ChaincodeLifecycleTest {
         final String channel = "mychannel";
         ChaincodeInstantiate instantiate = new ChaincodeInstantiate()
                 .addArg("a")
-                .addArg("100")
+                .addArg(String.valueOf(2 << 30))
                 .addArg("b")
-                .addArg("200")
-                .chaincodeName("test_cc")
+                .addArg("20")
+                .chaincodeName("test_cc2")
                 .version("1.0")
                 .yamlPolicy(new File("chaincodes/endorsementpolicy.yaml"));
         Peer peer0 = service.buildPeer(org1, "peer0", org1Admin);
