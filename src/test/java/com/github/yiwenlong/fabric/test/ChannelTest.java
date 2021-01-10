@@ -32,7 +32,7 @@ public class ChannelTest {
     @Test
     public void createChannel() throws InvalidArgumentException, IOException, TransactionException {
         Orderer orderer0 = service.buildOrderer(ordererOrg, "orderer", ordererAdmin);
-        service.createChannel("mychannel", "/Users/yiwenlong/Code/fabric-samples-nodocker/samples/network-single-org/channel-mychannel/mychannel/mychannel.tx", orderer0, ordererAdmin);
+        service.createChannel("mychannel", "./mychannel/mychannel.tx", orderer0, ordererAdmin);
     }
 
     @Test
