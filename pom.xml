@@ -32,9 +32,9 @@
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.hyperledger.fabric-sdk-java/fabric-sdk-java -->
         <dependency>
-            <groupId>org.hyperledger.fabric-sdk-java</groupId>
+            <groupId>cgbbcp.fabric-sdk-java</groupId>
             <artifactId>fabric-sdk-java</artifactId>
-            <version>1.4.4</version>
+            <version>1.4.9</version>
         </dependency>
 
         <dependency>

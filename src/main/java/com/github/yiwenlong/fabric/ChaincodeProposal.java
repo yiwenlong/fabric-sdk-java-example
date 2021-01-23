@@ -3,6 +3,8 @@ package com.github.yiwenlong.fabric;
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
+import org.hyperledger.fabric.sdk.request.TransactionProposalRequest;
+import org.hyperledger.fabric.sdk.response.ProposalResponse;
 
 import java.util.Arrays;
 import java.util.Collection;

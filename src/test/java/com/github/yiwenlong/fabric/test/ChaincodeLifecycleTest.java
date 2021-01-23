@@ -7,6 +7,8 @@ import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseExcep
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.exception.TransactionException;
+import org.hyperledger.fabric.sdk.response.ChaincodeResponse;
+import org.hyperledger.fabric.sdk.response.ProposalResponse;
 import org.junit.Before;
 import org.junit.Test;
 

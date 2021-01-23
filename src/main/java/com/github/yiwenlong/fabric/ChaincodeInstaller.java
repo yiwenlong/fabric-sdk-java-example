@@ -4,6 +4,9 @@ import org.hyperledger.fabric.protos.peer.FabricProposalResponse;
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
+import org.hyperledger.fabric.sdk.request.InstallProposalRequest;
+import org.hyperledger.fabric.sdk.request.TransactionRequest;
+import org.hyperledger.fabric.sdk.response.ProposalResponse;
 
 import java.io.File;
 import java.util.Arrays;
